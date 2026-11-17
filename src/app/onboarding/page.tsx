@@ -2,19 +2,21 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
-import { ShieldCheck } from "lucide-react";
+import { AccountCard } from "@/components/connect/account-card";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { useSession } from "@medialane/ui/utils/use-session";
+import { useRedirectWhenDone } from "@/hooks/use-redirect-when-done";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { connectHref } from "@/lib/connect-href";
 import { safeRelativePath } from "@/lib/safe-redirect";
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={null}>
-      <OnboardingContent />
-    </Suspense>
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
+      <Suspense fallback={null}>
+        <OnboardingContent />
+      </Suspense>
+    </div>
   );
 }
 
@@ -24,6 +26,7 @@ function OnboardingContent() {
   const { session, isLoading } = useSession();
   const { hasWallet } = useWalletNativeSession();
   const redirectTo = safeRelativePath(searchParams.get("redirect_url")) ?? "/airdrop";
+  const onDone = useRedirectWhenDone(redirectTo);
 
   const needsSignIn = !isLoading && (!session || (!!session.walletAddress && !hasWallet));
 
@@ -34,21 +37,8 @@ function OnboardingContent() {
   if (isLoading || needsSignIn || !session) return null;
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-            </div>
-          </div>
-          <CardTitle>Secure your account</CardTitle>
-          <CardDescription>Finish setting up your account.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <OnboardingFlow start="wallet" onDone={() => setTimeout(() => router.push(redirectTo), 1600)} />
-        </CardContent>
-      </Card>
-    </div>
+    <AccountCard title="Secure your account" description="Finish setting up your account.">
+      <OnboardingFlow start="wallet" onDone={onDone} />
+    </AccountCard>
   );
 }

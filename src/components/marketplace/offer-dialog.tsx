@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { useSWRConfig } from "swr";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, AlertTriangle, HandCoins, Layers, ShieldCheck } from "lucide-react";
+import { AlertTriangle, HandCoins, Layers } from "lucide-react";
 import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned, usdValueFor } from "@medialane/ui";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Form } from "@medialane/ui/form";
-import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { MarketplaceDialog, DialogErrorAlert, DialogSignInGate, DialogNote } from "@/components/marketplace/dialog-frame";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useOnOpen } from "@medialane/ui/utils/use-on-open";
 import { makeOffer } from "@/lib/marketplace-intents";
 import { useResolvedTokenStandard } from "@/hooks/use-resolved-token-standard";
 import {
   TransactionDialogStates,
-  MarketplaceSignInGate,
   successMessages,
   MarketplaceDialogHero,
   OrderFields,
@@ -52,11 +48,9 @@ export function OfferDialog({
   tokenImage: tokenImageRaw,
   tokenStandard,
 }: OfferDialogProps) {
-  const pathname = usePathname();
   const tokenImage = resolveImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
-  const { mutate } = useSWRConfig();
   const { phase, busy, txHash, error, retryable, failedAfterSubmit, start, reset } = useMarketplaceTransaction();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
@@ -105,117 +99,94 @@ export function OfferDialog({
   useOnOpen(open, () => { form.reset(); reset(); setPendingValues(null); });
 
   useConfetti(isSuccess);
-  useEffect(() => {
-    if (!isSuccess) return;
-    mutate((key) => typeof key === "string" && key.includes("/v1/orders"), undefined, { revalidate: true });
-  }, [isSuccess, mutate]);
 
   const name = tokenName || `Token #${tokenId}`;
-  const shieldFooter = (
-    <div className="flex items-start justify-center gap-1.5">
-      <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-      <p className="text-2xs text-center text-muted-foreground">
-        Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.
-      </p>
-    </div>
-  );
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[calc(100%-6px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl flex flex-col max-h-[92svh]">
-          <DialogTitle className="sr-only">Make an offer on {name}</DialogTitle>
-          <DialogDescription className="sr-only">
-            Set your offer price, currency, and duration to place an onchain offer.
-          </DialogDescription>
+    <MarketplaceDialog
+      open={open}
+      onOpenChange={handleClose}
+      title={`Make an offer on ${name}`}
+      description="Set your offer price, currency, and duration to place an onchain offer."
+    >
+      <TransactionDialogStates
+        phase={phase}
+        asset={{ name, image: tokenImage }}
+        statusMessage="Confirming on Starknet…"
+        txHash={txHash}
+        error={error}
+        success={successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
+        successActions={[{ label: "Done", onClick: () => onOpenChange(false) }]}
+        successChildren={<RewardEarned actionType="make_offer" />}
+        errorTitle="Offer failed"
+        errorDescription="The transaction was submitted, but the offer could not be completed."
+        onRetry={retryable ? reset : undefined}
+        onDone={() => onOpenChange(false)}
+      >
+        {!hasWallet ? (
+          <DialogSignInGate
+            title="Secure your account to make an offer"
+            description="You need an account to place offers."
+          />
+        ) : (
+          <>
+            <MarketplaceDialogHero
+              tokenImage={tokenImage}
+              tokenName={tokenName}
+              tokenId={tokenId}
+              fallbackIcon={<HandCoins className="h-12 w-12 text-brand-blue/30" />}
+              badge={is1155 ? (
+                <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
+                  <Layers className="h-3 w-3" />
+                  Multi-edition
+                </span>
+              ) : undefined}
+            />
+            <div className="flex items-center justify-between px-5 pt-3 pb-0">
+              <p className="font-bold text-base leading-tight truncate">{name}</p>
+            </div>
 
-          <TransactionDialogStates
-            phase={phase}
-            asset={{ name, image: tokenImage }}
-            statusMessage="Confirming on Starknet…"
-            txHash={txHash}
-            error={error}
-            success={successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
-            successActions={[{ label: "Done", onClick: () => onOpenChange(false) }]}
-            successChildren={<RewardEarned actionType="make_offer" />}
-            errorTitle="Offer failed"
-            errorDescription="The transaction was submitted, but the offer could not be completed."
-            onRetry={retryable ? reset : undefined}
-            onDone={() => onOpenChange(false)}
-          >
-            {!hasWallet ? (
-              <MarketplaceSignInGate
-                title="Secure your account to make an offer"
-                description="You need an account to place offers."
-                href={`/connect?redirect_url=${encodeURIComponent(pathname)}`}
-              />
+            <div className="px-5 pb-4 pt-2 space-y-3">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-            ) : (
-              <>
-                <MarketplaceDialogHero
-                  tokenImage={tokenImage}
-                  tokenName={tokenName}
-                  tokenId={tokenId}
-                  fallbackIcon={<HandCoins className="h-12 w-12 text-brand-blue/30" />}
-                  badge={is1155 ? (
-                    <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
-                      <Layers className="h-3 w-3" />
-                      Multi-edition
-                    </span>
-                  ) : undefined}
-                />
-                <div className="flex items-center justify-between px-5 pt-3 pb-0">
-                  <p className="font-bold text-base leading-tight truncate">{name}</p>
-                </div>
+                  <OrderFields
+                    form={form}
+                    durationOptions={DURATION_OPTIONS}
+                    busy={busy}
+                    priceLabel={is1155 ? "Price per edition" : "Offer price"}
+                    quantity={is1155 ? {} : undefined}
+                  />
 
-                <div className="px-5 pb-4 pt-2 space-y-3">
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                  {usdEquivalent && (
+                    <p className="text-xs text-muted-foreground -mt-1">≈ {usdEquivalent}</p>
+                  )}
 
-                      <OrderFields
-                        form={form}
-                        durationOptions={DURATION_OPTIONS}
-                        busy={busy}
-                        priceLabel={is1155 ? "Price per edition" : "Offer price"}
-                        quantity={is1155 ? {} : undefined}
-                      />
+                  {balanceSufficient === false && (
+                    <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">
+                        Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.
+                      </p>
+                    </div>
+                  )}
 
-                      {usdEquivalent && (
-                        <p className="text-xs text-muted-foreground -mt-1">≈ {usdEquivalent}</p>
-                      )}
+                  <DialogErrorAlert error={error} />
 
-                      {balanceSufficient === false && (
-                        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
-                          <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">
-                            Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.
-                          </p>
-                        </div>
-                      )}
+                  <div className="pt-1 space-y-2">
+                    <GradientButton type="submit" disabled={busy}>
+                      <HandCoins className="h-4 w-4" />
+                      Submit offer
+                    </GradientButton>
+                    <DialogNote>Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.</DialogNote>
+                  </div>
 
-                      {error && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      <div className="pt-1 space-y-2">
-                        <GradientButton type="submit" disabled={busy}>
-                          <HandCoins className="h-4 w-4" />
-                          {hasWallet ? "Submit offer" : "Secure account & offer"}
-                        </GradientButton>
-                        {shieldFooter}
-                      </div>
-
-                    </form>
-                  </Form>
-                </div>
-              </>
-            )}
-          </TransactionDialogStates>
-        </DialogContent>
-      </Dialog>
-    </>
+                </form>
+              </Form>
+            </div>
+          </>
+        )}
+      </TransactionDialogStates>
+    </MarketplaceDialog>
   );
 }

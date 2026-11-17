@@ -3,17 +3,12 @@
 import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor, GradientButton } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  ShoppingCart, RefreshCw, Zap, Minus, Plus,
-  ShieldCheck,
-} from "lucide-react";
-import { fireConfetti } from "@medialane/ui/utils/media-wallet/confetti";
+import { ShoppingCart, RefreshCw, Zap, Minus, Plus } from "lucide-react";
+import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned } from "@medialane/ui";
 import { assetHref as buildAssetHref } from "@/lib/routes";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Button } from "@medialane/ui/button";
-import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { MarketplaceDialog, DialogErrorAlert, DialogNote } from "@/components/marketplace/dialog-frame";
 import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useOnOpen } from "@medialane/ui/utils/use-on-open";
@@ -65,7 +60,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const needsSwap = !balanceLoading && orderCurrencyBalance !== null && orderCurrencyBalance < requiredRaw;
 
   const buy = async (values: { quantity: number; paymentSymbol: string | null }) => {
-    const ok = await start(async (ctx) => {
+    await start(async (ctx) => {
       const qty = is1155 ? String(values.quantity) : undefined;
 
       const quantity = is1155 ? BigInt(values.quantity || 1) : 1n;
@@ -92,7 +87,6 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         swap,
       });
     });
-    if (ok) fireConfetti();
   };
 
   const canBuy = !needsSwap || !!paymentSymbol;
@@ -103,6 +97,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   };
 
   const isSuccess = phase === "success";
+  useConfetti(isSuccess);
 
   const handleClose = (v: boolean) => {
     if (busy || isSuccess) return;
@@ -118,123 +113,106 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const processingMessage = "Confirming on Starknet…";
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-[calc(100%-12px)] sm:max-w-md p-0 overflow-hidden gap-0 rounded-2xl">
-          <DialogTitle className="sr-only">
-            {isSuccess ? "Purchase complete" : busy ? "Processing purchase" : "Buy now"}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Confirm and complete this marketplace purchase with your Medialane wallet.
-          </DialogDescription>
+    <MarketplaceDialog
+      open={open}
+      onOpenChange={handleClose}
+      title={isSuccess ? "Purchase complete" : busy ? "Processing purchase" : "Buy now"}
+      description="Confirm and complete this marketplace purchase with your Medialane wallet."
+    >
+      <TransactionDialogStates
+        phase={phase}
+        asset={{ name: assetName, image: assetImage }}
+        statusMessage={processingMessage}
+        txHash={txHash}
+        error={error}
+        success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
+        successActions={[
+          {
+            label: "View asset",
+            href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
+            onClick: () => { onOpenChange(false); onSuccess?.(); },
+          },
+          { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
+        ]}
+        successChildren={<RewardEarned actionType="buy_asset" />}
+        errorTitle="Purchase failed"
+        errorDescription="The transaction was submitted, but the purchase could not be completed."
+        onRetry={retryable ? reset : undefined}
+        onDone={() => onOpenChange(false)}
+      >
+        <div className="space-y-0">
+          <OrderSummaryHero
+            name={assetName}
+            image={assetImage}
+            subtitle={
+              <span className="flex items-center gap-1">
+                <Zap className="h-3 w-3 text-emerald-500" />
+                <span className="text-emerald-500">Digital Asset Ownership</span>
+              </span>
+            }
+            price={order.price}
+            quantity={quantity}
+            usdTotal={totalUsd}
+          />
+          <div className="px-6 pb-6 pt-3 space-y-3">
+            <DialogErrorAlert error={error} />
 
-          <TransactionDialogStates
-            phase={phase}
-            asset={{ name: assetName, image: assetImage }}
-            statusMessage={processingMessage}
-            txHash={txHash}
-            error={error}
-            success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
-            successActions={[
-              {
-                label: "View asset",
-                href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
-                onClick: () => { onOpenChange(false); onSuccess?.(); },
-              },
-              { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
-            ]}
-            successChildren={<RewardEarned actionType="buy_asset" />}
-            errorTitle="Purchase failed"
-            errorDescription="The transaction was submitted, but the purchase could not be completed."
-            onRetry={retryable ? reset : undefined}
-            onDone={() => onOpenChange(false)}
-          >
-              <div className="space-y-0">
-                <OrderSummaryHero
-                  name={assetName}
-                  image={assetImage}
-                  subtitle={
-                    <span className="flex items-center gap-1">
-                      <Zap className="h-3 w-3 text-emerald-500" />
-                      <span className="text-emerald-500">Digital Asset Ownership</span>
-                    </span>
-                  }
-                  price={order.price}
-                  quantity={quantity}
-                  usdTotal={totalUsd}
-                />
-                <div className="px-6 pb-6 pt-3 space-y-3">
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-
-                  {is1155 && maxQty > 1 && (
-                    <div className="flex items-center justify-between py-1">
-                      <span className="text-sm text-muted-foreground">Quantity</span>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline" size="icon" className="h-7 w-7"
-                          disabled={quantity <= 1}
-                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-                        <Button
-                          variant="outline" size="icon" className="h-7 w-7"
-                          disabled={quantity >= maxQty}
-                          onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                        <span className="text-xs text-muted-foreground ml-1">/ {maxQty}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {hasWallet && needsSwap && order.price?.currency && (
-                    <PayWithPicker
-                      orderCurrency={order.price.currency}
-                      requiredRaw={requiredRaw}
-                      walletAddress={walletAddress}
-                      selected={paymentSymbol}
-                      onSelect={setPaymentSymbol}
-                      onBeforeFund={() => onOpenChange(false)}
-                    />
-                  )}
-
-                  {!hasWallet ? (
-                    <p className="text-sm text-muted-foreground text-center py-2">
-                      Secure your account to purchase this asset.
-                    </p>
-                  ) : error && !retryable ? (
-                    <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
-                      Close
-                    </Button>
-                  ) : (
-                    <GradientButton onClick={handleBuyClick} disabled={!canBuy}>
-                      {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                      {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
-                    </GradientButton>
-                  )}
-
-                  <div className="flex items-start justify-center gap-1.5">
-                    <ShieldCheck className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                    <p className="text-2xs text-center text-muted-foreground">
-                      Purchases settle atomically onchain and assets transfer instantly.
-                    </p>
-                  </div>
+            {is1155 && maxQty > 1 && (
+              <div className="flex items-center justify-between py-1">
+                <span className="text-sm text-muted-foreground">Quantity</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline" size="icon" className="h-7 w-7"
+                    disabled={quantity <= 1}
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                  <Button
+                    variant="outline" size="icon" className="h-7 w-7"
+                    disabled={quantity >= maxQty}
+                    onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-1">/ {maxQty}</span>
                 </div>
               </div>
-          
-          </TransactionDialogStates>
-        </DialogContent>
-      </Dialog>
-    </>
+            )}
+
+            {hasWallet && needsSwap && order.price?.currency && (
+              <PayWithPicker
+                orderCurrency={order.price.currency}
+                requiredRaw={requiredRaw}
+                walletAddress={walletAddress}
+                selected={paymentSymbol}
+                onSelect={setPaymentSymbol}
+                onBeforeFund={() => onOpenChange(false)}
+              />
+            )}
+
+            {!hasWallet ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Secure your account to purchase this asset.
+              </p>
+            ) : error && !retryable ? (
+              <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            ) : (
+              <GradientButton onClick={handleBuyClick} disabled={!canBuy}>
+                {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
+              </GradientButton>
+            )}
+
+            <DialogNote>Purchases settle atomically onchain and assets transfer instantly.</DialogNote>
+          </div>
+        </div>
+      </TransactionDialogStates>
+    </MarketplaceDialog>
   );
 }

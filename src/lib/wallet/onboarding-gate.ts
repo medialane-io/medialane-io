@@ -6,7 +6,7 @@ export interface OnboardingGateState {
   isDeploying: boolean;
 }
 
-const SETS_UP_ITSELF = ["/mint", "/br/mint", "/airdrop", "/connect", "/onboarding", "/confirm-email"];
+const SETS_UP_ITSELF = ["/mint","/airdrop", "/connect", "/onboarding", "/confirm-email"];
 
 const onAny = (pathname: string, prefixes: string[]): boolean => prefixes.some((p) => pathname.startsWith(p));
 

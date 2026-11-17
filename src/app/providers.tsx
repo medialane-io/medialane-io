@@ -1,22 +1,13 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
-import Link from "next/link";
-import { MedialaneLogoFull as MedialaneLogo } from "@medialane/ui/brand-logo";
 import { SWRConfig } from "swr";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { usePathname } from "next/navigation";
+import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect } from "react";
-import { NavCommandMenu, NavBrandButton, ThemeAmbientBackground, SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, useCreatorProfile, IpfsGatewayFallback, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
-import { NAV_COMMANDS } from "@/lib/nav-commands";
+import { SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, IpfsGatewayFallback, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
-import { NavThemeToggle } from "@medialane/ui/nav-theme-toggle";
-import { NavConnectButton } from "@/components/nav-connect-button";
-import { HeaderWalletTrigger } from "@/components/nav-wallet-trigger";
-import { MediaWalletApp } from "@/components/media-wallet-app";
-import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
-import { resolveImage } from "@/lib/utils";
+import { AppShell } from "@/components/app-shell";
 import { IPFS_GATEWAY } from "@/lib/constants";
 import { walletConsent } from "@/lib/wallet/client";
 import { sendUploadDiagnostics } from "@/lib/upload-diagnostics";
@@ -24,77 +15,8 @@ import { useAppAdapter } from "@/lib/use-app-adapter";
 
 const GA_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
-function StandaloneShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1">{children}</main>
-    </div>
-  );
-}
-
-function MainShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const suppressAmbient =
-    pathname.startsWith("/asset/") ||
-    pathname.startsWith("/collections/") ||
-    pathname.startsWith("/creator/");
-  const { address: walletAddress } = useWalletNativeSession();
-  const { profile } = useCreatorProfile(walletAddress ?? undefined);
-  const themeImageUrl = suppressAmbient ? null : resolveImage(profile?.avatarImage);
-
-  return (
-    <>
-      <NavCommandMenu
-        commands={NAV_COMMANDS}
-        footerSlot={<NavThemeToggle />}
-        showKeyboardHints={false}
-        brandSlot={<NavConnectButton />}
-        search
-      />
-      <MediaWalletApp />
-      <div className="relative min-h-screen flex flex-col bg-background">
-        <ThemeAmbientBackground imageUrl={themeImageUrl} />
-        <div className="fixed top-4 left-4 sm:left-6 lg:left-8 z-50">
-          <NavBrandButton />
-        </div>
-        <div className="fixed top-4 right-4 sm:right-6 lg:right-8 z-50">
-          <HeaderWalletTrigger />
-        </div>
-        <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
-        <footer className="px-4 sm:px-6 lg:px-8 py-8 mt-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p className="text-xs">© {new Date().getFullYear()} Medialane DAO</p>
-            <nav className="flex items-center gap-4 flex-wrap justify-center">
-              <Link href="/marketplace" className="hover:text-foreground transition-colors">Trade</Link>
-              <Link href="/launchpad" className="hover:text-foreground transition-colors">Launch</Link>
-              <a href="https://docs.medialane.io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Docs</a>
-              <a href="https://docs.medialane.io/guidelines/terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="https://docs.medialane.io/guidelines/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="https://x.com/medialane_io" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">X</a>
-            </nav>
-            <div className="flex items-center gap-2">
-              <MedialaneLogo />
-            </div>
-          </div>
-        </footer>
-      </div>
-    </>
-  );
-}
-
 function AppAdapter({ children }: { children: React.ReactNode }) {
   return <MedialaneAppProvider value={useAppAdapter()}>{children}</MedialaneAppProvider>;
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  if (
-    pathname === "/br" || pathname.startsWith("/br/") ||
-    pathname === "/mint"
-  ) {
-    return <StandaloneShell>{children}</StandaloneShell>;
-  }
-  return <MainShell>{children}</MainShell>;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -106,28 +28,27 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       <TooltipProvider delayDuration={300}>
-      <SWRConfig
-        value={{
-          onError: (err: unknown) => {
+        <SWRConfig
+          value={{
+            onError: (err: unknown) => {
+              const status =
+                err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
+                  ? (err as { status: number }).status
+                  : null;
+              if (status === 404) return;
 
-            const status =
-              err && typeof err === "object" && "status" in err && typeof (err as { status: unknown }).status === "number"
-                ? (err as { status: number }).status
-                : null;
-            if (status === 404) return;
-
-            console.error("request failed", err);
-          },
-        }}
-      >
-        {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
-        <IpfsGatewayFallback primary={IPFS_GATEWAY} fallback={PINATA_PUBLIC_GATEWAY} />
-        <OnboardingGate />
-        <AppAdapter>
-          <Shell>{children}</Shell>
-        </AppAdapter>
-        <SelfFundConsentDialog consent={walletConsent} />
-      </SWRConfig>
+              console.error("request failed", err);
+            },
+          }}
+        >
+          {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+          <IpfsGatewayFallback primary={IPFS_GATEWAY} fallback={PINATA_PUBLIC_GATEWAY} />
+          <OnboardingGate />
+          <AppAdapter>
+            <AppShell>{children}</AppShell>
+          </AppAdapter>
+          <SelfFundConsentDialog consent={walletConsent} />
+        </SWRConfig>
       </TooltipProvider>
     </ThemeProvider>
   );

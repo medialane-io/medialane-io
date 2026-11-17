@@ -3,7 +3,7 @@ import { Coins } from "lucide-react";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
-import { ClaimMemecoinAside } from "@/components/claim/claim-memecoin-aside";
+import { PageAside } from "@/components/claim/page-aside";
 import { canonical, buildSocialMetadata } from "@/lib/seo";
 
 const title = "Claim Memecoin";
@@ -22,7 +22,7 @@ export default function MemecoinClaimPage() {
       icon={<Coins className="h-4 w-4 text-white" />}
       title="Claim a Memecoin"
       subtitle="Already launched a coin on Starknet? Add it so people can discover and trade it."
-      aside={<ClaimMemecoinAside />}
+      aside={<PageAside kind="claimMemecoin" />}
     >
       <ClaimGate>
         <ClaimCollectionPanel kind="coin" helperText="Paste your coin's Starknet contract address. If your wallet owns the contract it goes live immediately." />

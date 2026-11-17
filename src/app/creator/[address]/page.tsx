@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { address } = await params;
 
   if (address.startsWith("0x") || address.startsWith("0X")) {
-    return { title: `${address.slice(0, 8)}… | Medialane` };
+    return { title: `${address.slice(0, 8)}…` };
   }
 
   const profile = await fetchCreatorProfile(address);
