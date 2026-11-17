@@ -43,7 +43,7 @@ export default function MarketplacePageClient() {
 
       <ActivityTicker limit={12} />
 
-      <FeaturedListings market={market} />
+      <FeaturedListings market={market} heading={false} />
       {market.dialogs}
 
       <div className="space-y-2">
