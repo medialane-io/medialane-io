@@ -126,7 +126,6 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
         <TransactionDialogStates
           phase={phase}
           asset={{ name, image }}
-          statusMessage="Confirming on Starknet…"
           txHash={txHash}
           error={error}
           success={successMessages.accepted({ name, price: priceLabel })}

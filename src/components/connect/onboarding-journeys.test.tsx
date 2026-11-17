@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MedialaneApiError } from "@medialane/sdk";
 import { mockForThisFile } from "../../../test/mock-for-this-file";
 
@@ -78,10 +78,15 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
+const mount = (ui: React.ReactElement) => act(async () => void render(ui));
+const click = (element: HTMLElement) => act(async () => void fireEvent.click(element));
+const type = (element: HTMLElement, value: string) => act(async () => void fireEvent.change(element, { target: { value } }));
+const settle = () => act(() => new Promise<void>((resolve) => setTimeout(resolve, 20)));
+
 async function enterEmail(email: string) {
-  render(<OnboardingFlow onDone={onDone} />);
-  fireEvent.change(screen.getByPlaceholderText("you@example.com"), { target: { value: email } });
-  fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+  await mount(<OnboardingFlow onDone={onDone} />);
+  await type(screen.getByPlaceholderText("you@example.com"), email);
+  await click(screen.getByRole("button", { name: "Continue" }));
 }
 
 async function enterCode(code = "123456") {
@@ -90,7 +95,7 @@ async function enterCode(code = "123456") {
     if (!el) throw new Error("code input not shown");
     return el as HTMLInputElement;
   });
-  fireEvent.change(input, { target: { value: code } });
+  await type(input, code);
 }
 
 describe("a new io user", () => {
@@ -107,8 +112,8 @@ describe("a new io user", () => {
 
 describe("the onboarding page opened by someone not signed in", () => {
   test("sets nothing up", async () => {
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await mount(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await settle();
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
   });
@@ -122,7 +127,7 @@ describe("someone signed in whose wallet is already set up on this browser", () 
 
   test("never gets a second wallet, whatever page they open", async () => {
     signedInWithKey(true);
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await mount(<OnboardingFlow start="wallet" onDone={onDone} />);
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
@@ -130,14 +135,14 @@ describe("someone signed in whose wallet is already set up on this browser", () 
 
   test("waits until it is known whether the wallet is finished before doing anything", async () => {
     signedInWithKey(null);
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await mount(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await settle();
     expect(completeDeployment).not.toHaveBeenCalled();
   });
 
   test("a wallet that never finished deploying is finished with the key already here", async () => {
     signedInWithKey(false);
-    render(<OnboardingFlow start="wallet" onDone={onDone} />);
+    await mount(<OnboardingFlow start="wallet" onDone={onDone} />);
     await waitFor(() => expect(completeDeployment).toHaveBeenCalledTimes(1));
   });
 });
@@ -146,7 +151,7 @@ describe("someone with a sign-in cookie whose wallet is not on this browser", ()
   test("is asked for their email like anyone else, and nothing is set up", async () => {
     session = { email: "signed-in@example.com", walletAddress: WALLET };
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
-    render(<OnboardingFlow onDone={onDone} />);
+    await mount(<OnboardingFlow onDone={onDone} />);
     await waitFor(() => screen.getByPlaceholderText("you@example.com"));
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
@@ -158,7 +163,7 @@ describe("someone with a sign-in cookie whose wallet is not on this browser", ()
 describe("someone signed in whose account has no wallet yet", () => {
   test("goes straight to securing the account, with no email or code asked again", async () => {
     session = { email: "signed-in@example.com", walletAddress: null };
-    render(<OnboardingFlow onDone={onDone} />);
+    await mount(<OnboardingFlow onDone={onDone} />);
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(completeDeployment).toHaveBeenCalledTimes(1);
     expect(api.account.emailExists).not.toHaveBeenCalled();
@@ -233,11 +238,11 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
+    await click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
-    fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
-    fireEvent.click(screen.getByRole("button", { name: /Restore my account/ }));
+    await type(input, real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }));
+    await click(screen.getByRole("button", { name: /Restore my account/ }));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
   });
 
@@ -247,11 +252,11 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
+    await click(await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION })));
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
-    fireEvent.change(input, { target: { value: real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }) } });
-    fireEvent.click(screen.getByRole("button", { name: /Restore my account/ }));
+    await type(input, real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }));
+    await click(screen.getByRole("button", { name: /Restore my account/ }));
     await waitFor(() => expect(screen.getByText(/does not open this account/)).toBeTruthy());
     expect(done).toEqual([]);
   });
@@ -261,18 +266,18 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_LINK })));
+    await click(await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_LINK })));
   };
 
   test("choosing a new wallet asks first, in the page, then replaces the wallet and finishes", async () => {
     await reachNewWalletConfirm();
     await waitFor(() => screen.getByText("Start a new wallet?"));
     expect(completeDeployment).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => screen.getByRole("button", { name: NEW_WALLET_LINK }));
     expect(completeDeployment).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: NEW_WALLET_LINK }));
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Start a new wallet" })));
+    await click(screen.getByRole("button", { name: NEW_WALLET_LINK }));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Start a new wallet" })));
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(completeDeployment).toHaveBeenCalledTimes(1);
     expect(completeDeployment.mock.calls[0]![1]).toEqual({ replace: true });
@@ -283,8 +288,8 @@ describe("an address that already has an account", () => {
     completeDeployment.mockImplementationOnce(async () => {
       throw new Error("deploy failed");
     });
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Start a new wallet" })));
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Try again" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Start a new wallet" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Try again" })));
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(completeDeployment.mock.calls.map((c) => c[1])).toEqual([{ replace: true }, { replace: true }]);
   });
@@ -295,8 +300,8 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Send" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Send" })));
     await waitFor(() => screen.getByText(/we've got your message/));
     expect(api.account.contactSupport).toHaveBeenCalledWith({ message: undefined });
   });
@@ -310,9 +315,9 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
-    fireEvent.change(await waitFor(() => screen.getByLabelText(/What happened/)), { target: { value: "help" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    await click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
+    await type(await waitFor(() => screen.getByLabelText(/What happened/)), "help");
+    await click(screen.getByRole("button", { name: "Send" }));
     await waitFor(() => expect(document.body.textContent).toContain("with support"));
     expect((screen.getByLabelText(/What happened/) as HTMLTextAreaElement).value).toBe("help");
   });
@@ -325,7 +330,7 @@ describe("an address that already has an account", () => {
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await enterEmail("new-browser@example.com");
     await enterCode();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Use a different email" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Use a different email" })));
     await waitFor(() => screen.getByPlaceholderText("you@example.com"));
     expect((screen.getByPlaceholderText("you@example.com") as HTMLInputElement).value).toBe("");
     expect(fetchMock.mock.calls[0]).toEqual(["/api/session", { method: "DELETE" }]);
@@ -391,7 +396,7 @@ describe("when the passkey step fails", () => {
     await enterEmail("closed@example.com");
     await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|Passkeys aren't available/)).toBeTruthy());
     expect(done).toEqual([]);
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(completeDeployment).toHaveBeenCalledTimes(2);
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
@@ -406,7 +411,7 @@ describe("when the passkey step fails", () => {
     await waitFor(() => expect(screen.getByText(/Your account setup is not complete/)).toBeTruthy());
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(done).toEqual([]);
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(completeDeployment).toHaveBeenCalledTimes(2);
@@ -431,9 +436,9 @@ describe("recovering by email on a new browser", () => {
     await waitFor(() => screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
     expect(screen.getByRole("button", { name: SUPPORT_OPTION })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Recover with my email" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
+    await click(screen.getByRole("button", { name: RECOVERY_KEY_OPTION }));
     await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    await click(screen.getByRole("button", { name: "Back" }));
     await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION }));
   });
 
@@ -449,7 +454,7 @@ describe("recovering by email on a new browser", () => {
     getRecovery.mockImplementation(async () => ON);
     startRecovery.mockImplementation(async () => ({ ...ON, state: "waiting", readyAt: 1_900_000_000, newOwnerGuid: real.starknet.computeOwnerGuid("0x222") }));
     await reachRecoveryStep();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
     await waitFor(() => expect(screen.getByText(/Recovery started/)).toBeTruthy());
     expect(startRecovery).toHaveBeenCalledWith({ newOwnerPubkey: "0x222" });
     expect(real.client.ownerStore.loadRecovery()?.address).toBe(WALLET);
@@ -461,7 +466,7 @@ describe("recovering by email on a new browser", () => {
     getRecovery.mockImplementation(async () => ON);
     createKeyError = Object.assign(new Error("closed"), { name: "PasskeyCancelledError" });
     await reachRecoveryStep();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Recover with my email" })));
     await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|Passkeys aren't available/)).toBeTruthy());
     expect(startRecovery).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Recover with my email" })).toBeTruthy();
@@ -471,7 +476,7 @@ describe("recovering by email on a new browser", () => {
     real.client.ownerStore.saveRecovery({ credentialId: "c", ownerPubKey: "0x222", address: WALLET, iv: "i", ciphertext: "x" });
     getRecovery.mockImplementation(async () => ({ ...ON, state: "ready", readyAt: 1_800_000_000, newOwnerGuid: real.starknet.computeOwnerGuid("0x222") }));
     await reachRecoveryStep();
-    fireEvent.click(await waitFor(() => screen.getByRole("button", { name: "Open my account" })));
+    await click(await waitFor(() => screen.getByRole("button", { name: "Open my account" })));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
     expect(completeRecovery).toHaveBeenCalledWith({ newOwnerPubkey: "0x222" });
     expect(real.client.ownerStore.loadRecovery()).toBeNull();

@@ -29,12 +29,9 @@ export function truncateDescription(value: string, max = 160): string {
   return `${value.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
 }
 
-export const AIRDROP_OG_IMAGE =
-  "https://gateway.pinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
-
-function socialImage(imageUrl?: string | null, alt = "Medialane", size = { width: 1200, height: 630 }) {
+function socialImage(imageUrl?: string | null, alt = "Medialane") {
   const url = imageUrl || absoluteUrl("/og-image.jpg");
-  return { url, ...size, alt };
+  return { url, width: 1200, height: 630, alt };
 }
 
 export function buildSocialMetadata(opts: {
@@ -42,10 +39,9 @@ export function buildSocialMetadata(opts: {
   description: string;
   imageUrl?: string | null;
   imageAlt?: string;
-  imageSize?: { width: number; height: number };
 }): Pick<Metadata, "openGraph" | "twitter"> {
   const ogTitle = `${opts.title} | Medialane`;
-  const image = socialImage(opts.imageUrl, opts.imageAlt ?? opts.title, opts.imageSize);
+  const image = socialImage(opts.imageUrl, opts.imageAlt ?? opts.title);
 
   return {
     openGraph: {

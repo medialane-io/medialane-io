@@ -112,7 +112,6 @@ export function OfferDialog({
       <TransactionDialogStates
         phase={phase}
         asset={{ name, image: tokenImage }}
-        statusMessage="Confirming on Starknet…"
         txHash={txHash}
         error={error}
         success={successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
