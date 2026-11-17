@@ -10,18 +10,16 @@ import {
   Star,
 } from "lucide-react";
 import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Creator's Airdrop";
+const description = "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.";
 
 export const metadata: Metadata = {
-  title: "Creator's Airdrop | Medialane",
-  description: "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.",
+  title,
+  description,
   alternates: canonical("/airdrop"),
-  openGraph: {
-    title: "Creator's Airdrop | Medialane",
-    description: "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.",
-    url: "/airdrop",
-    type: "website",
-  },
+  ...buildSocialMetadata({ title, description }),
 };
 
 const EARN_GROUPS = [

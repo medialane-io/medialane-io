@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import { ClaimPageClient } from "./claim-page-client";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
+
+const title = "Claims";
+const description = "Reserve your username, bring in a collection or a coin, or join the Creator's Airdrop on Medialane.";
 
 export const metadata: Metadata = {
-  title: "Claims — Medialane",
-  description: "Reserve your username, bring in a collection or a coin, or join the Creator's Airdrop on Medialane.",
+  title,
+  description,
   alternates: canonical("/claim"),
-  openGraph: {
-    title: "Claims — Medialane",
-    description: "Reserve your username, bring in a collection or a coin, or join the Creator's Airdrop on Medialane.",
-    type: "website",
-    url: "/claim",
-  },
+  ...buildSocialMetadata({ title, description }),
 };
 
 export default function ClaimPage() {

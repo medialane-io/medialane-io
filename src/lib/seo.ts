@@ -32,9 +32,9 @@ export function truncateDescription(value: string, max = 160): string {
 export const AIRDROP_OG_IMAGE =
   "https://gateway.pinata.cloud/ipfs/bafybeiglhfpl3ilyaiulzfjxspolmudih2d3t7lr27imy327fjag2s5zrq";
 
-function socialImage(imageUrl?: string | null, alt = "Medialane") {
+function socialImage(imageUrl?: string | null, alt = "Medialane", size = { width: 1200, height: 630 }) {
   const url = imageUrl || absoluteUrl("/og-image.jpg");
-  return { url, width: 1200, height: 630, alt };
+  return { url, ...size, alt };
 }
 
 export function buildSocialMetadata(opts: {
@@ -42,9 +42,10 @@ export function buildSocialMetadata(opts: {
   description: string;
   imageUrl?: string | null;
   imageAlt?: string;
+  imageSize?: { width: number; height: number };
 }): Pick<Metadata, "openGraph" | "twitter"> {
   const ogTitle = `${opts.title} | Medialane`;
-  const image = socialImage(opts.imageUrl, opts.imageAlt ?? opts.title);
+  const image = socialImage(opts.imageUrl, opts.imageAlt ?? opts.title, opts.imageSize);
 
   return {
     openGraph: {

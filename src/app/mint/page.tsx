@@ -1,34 +1,22 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MintContent } from "./mint-content";
-import { absoluteUrl, AIRDROP_OG_IMAGE as OG_IMAGE } from "@/lib/seo";
+import { canonical, buildSocialMetadata, AIRDROP_OG_IMAGE } from "@/lib/seo";
+
+const title = "Creator's Airdrop";
+const description =
+  "Claim your participation record and join the Medialane Creator's Airdrop. Free for everyone — no approval, no fees. Eligible for every community fund distribution.";
 
 export const metadata: Metadata = {
-  title: "Creator's Airdrop — Medialane",
-  description:
-    "Claim your participation record and join the Medialane Creator's Airdrop. Free for everyone — no approval, no fees. Eligible for every community fund distribution.",
-  alternates: {
-    canonical: absoluteUrl("/mint"),
-    languages: {
-      "en-US": absoluteUrl("/mint"),
-      "pt-BR": absoluteUrl("/br/mint"),
-    },
-  },
-  openGraph: {
-    title: "Creator's Airdrop — Medialane",
-    description:
-      "Claim your participation record and join the Medialane Creator's Airdrop. Free for everyone — no approval, no fees.",
-    locale: "en_US",
-    type: "website",
-    url: "/mint",
-    images: [{ url: OG_IMAGE, width: 1024, height: 1024, alt: "Creator's Airdrop — Medialane" }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Creator's Airdrop — Medialane",
-    description: "Claim your free participation record in the Medialane creator community fund.",
-    images: [OG_IMAGE],
-  },
+  title,
+  description,
+  alternates: canonical("/mint"),
+  ...buildSocialMetadata({
+    title,
+    description,
+    imageUrl: AIRDROP_OG_IMAGE,
+    imageSize: { width: 1024, height: 1024 },
+  }),
 };
 
 export default function MintPage() {

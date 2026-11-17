@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
 import { FolderInput, Globe } from "lucide-react";
-import { canonical } from "@/lib/seo";
+import { canonical, buildSocialMetadata } from "@/lib/seo";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
-import { ClaimCollectionAside } from "@/components/claim/claim-collection-aside";
+import { PageAside } from "@/components/claim/page-aside";
+
+const title = "Claim a Collection";
+const description =
+  "Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.";
 
 export const metadata: Metadata = {
-  title: "Claim a Collection — Medialane",
-  description:
-    "Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.",
+  title,
+  description,
   alternates: canonical("/claim/collection"),
-  openGraph: {
-    title: "Claim a Collection — Medialane",
-    description:
-      "Import an existing Starknet ERC-721 collection into your Medialane profile.",
-    type: "website",
-    url: "/claim/collection",
-  },
+  ...buildSocialMetadata({ title, description }),
 };
 
 const urlPill = (
@@ -34,7 +31,7 @@ export default function ClaimCollectionPage() {
       title="Claim a Collection"
       subtitle="Import an existing Starknet ERC-721 collection into your Medialane profile."
       headerAccessory={urlPill}
-      aside={<ClaimCollectionAside />}
+      aside={<PageAside kind="claimCollection" />}
     >
       <ClaimGate>
         <ClaimCollectionPanel helperText="Paste the Starknet ERC-721 contract address you own — we verify ownership on-chain before it goes live." />

@@ -35,7 +35,7 @@ describe("a signed-in user whose wallet needs setup on this browser", () => {
   });
 
   test("is not sent away from the pages that run the setup themselves", () => {
-    for (const pathname of ["/connect", "/onboarding", "/airdrop", "/mint/x", "/br/mint", "/confirm-email"]) {
+    for (const pathname of ["/connect", "/onboarding", "/airdrop", "/mint/x","/confirm-email"]) {
       expect(gate({ ...NEEDS_SETUP, pathname })).toBeNull();
     }
   });

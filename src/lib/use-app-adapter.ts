@@ -4,6 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Wallet } from "lucide-react";
 import type { MedialaneApp } from "@medialane/ui";
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";
+import { connectHref } from "@/lib/connect-href";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
@@ -18,7 +19,7 @@ export function useAppAdapter(): MedialaneApp {
   return {
     getClient: getMedialaneClient,
     walletAddress: address ?? null,
-    onRequireWallet: () => router.push(`/connect?redirect_url=${encodeURIComponent(pathname)}`),
+    onRequireWallet: () => router.push(connectHref(pathname)),
     ensureSignedIn: async () => requireSignedIn(session),
     signedIn: !!session,
     releaseSigner: () => {
