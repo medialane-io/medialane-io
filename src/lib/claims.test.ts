@@ -52,4 +52,13 @@ describe("the claims the launchpad stops showing", () => {
   test("do not include the airdrop, which is not a launchpad service", () => {
     expect(SHARED_CLAIM_KEYS as readonly string[]).not.toContain(AIRDROP_CLAIM.key);
   });
+
+  test("never address the reader", () => {
+    const second = /\b(you|your|yours|you're|you'll)\b/i;
+    const withoutAddresses = (text: string) => text.replace(/medialane\.io\/\S+/g, "");
+    for (const card of cards) {
+      const copy = [card.blurb, card.subtitle, card.description, card.example ?? "", ...card.features].map(withoutAddresses);
+      for (const text of copy) expect(second.test(text), `${card.key}: ${text}`).toBe(false);
+    }
+  });
 });
