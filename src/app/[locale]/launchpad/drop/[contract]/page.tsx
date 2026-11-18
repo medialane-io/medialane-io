@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 import { fetchDropMeta, ipfsToHttpServer } from "@/lib/api-server";
-import { canonical, buildBreadcrumbJsonLd, buildProductJsonLd, buildSocialMetadata } from "@/lib/seo";
+import { alternates, buildBreadcrumbJsonLd, buildProductJsonLd, buildSocialMetadata } from "@/lib/seo";
 import { JsonLd } from "@medialane/ui/json-ld";
 import DropDetailPage from "./drop-page-client";
 
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ contract: string }>;
+  params: Promise<{ contract: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { contract } = await params;
+  const { contract, locale } = await params;
   const drop = await fetchDropMeta(contract);
 
   const name        = drop?.name ?? "Collection Drop";
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: name,
     description,
-    alternates: canonical(`/launchpad/drop/${contract}`),
+    alternates: alternates(`/launchpad/drop/${contract}`, locale),
     ...buildSocialMetadata({ title: name, description, imageUrl }),
   };
 }

@@ -3,7 +3,7 @@ import { withLocale } from "@medialane/ui/i18n";
 import type { Metadata } from "next";
 import { JsonLd } from "@medialane/ui/json-ld";
 import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
-import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
+import { absoluteUrl, alternates, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import CreatorUsernamePageClient from "./creator-username-client";
 import { profileIdentity } from "@medialane/ui";
 
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { address } = await params;
+  const { address, locale } = await params;
 
   if (address.startsWith("0x") || address.startsWith("0X")) {
     return { title: `${address.slice(0, 8)}…` };
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: name,
     description,
-    alternates: canonical(path),
+    alternates: alternates(path, locale),
     ...social,
     openGraph: { ...social.openGraph, type: "profile" },
   };

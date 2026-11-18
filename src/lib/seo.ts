@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LOCALES, translate, withLocale, type LocaleInfo } from "@medialane/ui/i18n";
+import { loadMessages } from "@/i18n/messages";
 
 export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://medialane.io").replace(/\/$/, "");
 
@@ -8,8 +10,10 @@ export function absoluteUrl(path = "/"): string {
   return `${APP_URL}${normalized}`;
 }
 
-export function canonical(path = "/"): Metadata["alternates"] {
-  return { canonical: absoluteUrl(path) };
+export function alternates(path: string, locale: string, locales: readonly LocaleInfo[] = LOCALES): Metadata["alternates"] {
+  const languages: Record<string, string> = { "x-default": absoluteUrl(path) };
+  for (const { code } of locales) languages[code] = absoluteUrl(withLocale(path, code));
+  return { canonical: absoluteUrl(withLocale(path, locale)), languages };
 }
 
 export const defaultRobots: Metadata["robots"] = {
@@ -94,5 +98,30 @@ export function buildProductJsonLd(opts: {
     ...(opts.image && { image: [opts.image] }),
     ...(opts.sku && { sku: opts.sku }),
     ...(opts.brand && { brand: { "@type": "Brand", name: opts.brand } }),
+  };
+}
+
+export function pageMetadata(page: {
+  path: string;
+  title: string;
+  description?: string;
+  imageAlt?: string;
+  robots?: Metadata["robots"];
+  social?: boolean;
+}) {
+  return async ({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> => {
+    const { locale } = await params;
+    const messages = await loadMessages(locale);
+    const t = (text?: string) => (text === undefined ? undefined : translate({ messages, text }));
+    const title = t(page.title) as string;
+    const description = t(page.description);
+    const imageAlt = t(page.imageAlt);
+    return {
+      title,
+      ...(description !== undefined && { description }),
+      alternates: alternates(page.path, locale),
+      ...(page.robots && { robots: page.robots }),
+      ...(page.social === false ? {} : buildSocialMetadata({ title, description: description ?? "", imageAlt })),
+    };
   };
 }

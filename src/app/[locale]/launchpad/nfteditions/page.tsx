@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { EditionsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Limited Editions | Launchpad";
-const description = "Mint numbered copies of your work into an editions collection you own, or create a new collection.";
+const title = msg("Limited Editions | Launchpad");
+const description = msg("Mint numbered copies of your work into an editions collection you own, or create a new collection.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/nfteditions",
   title,
   description,
-  alternates: canonical("/launchpad/nfteditions"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function NFTEditionsPage() {
   return <EditionsPage />;

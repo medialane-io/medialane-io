@@ -1,21 +1,19 @@
-import type { Metadata } from "next";
 import { FolderInput, Globe } from "lucide-react";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = "Claim a Collection";
-const description =
-  "Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.";
+const title = msg("Claim a Collection");
+const description = msg("Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/claim/collection",
   title,
   description,
-  alternates: canonical("/claim/collection"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 const urlPill = (
   <div className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 max-w-full">

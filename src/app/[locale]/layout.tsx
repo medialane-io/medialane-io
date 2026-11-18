@@ -7,14 +7,14 @@ import { APP_URL, defaultRobots } from "@/lib/seo";
 
 import "@medialane/ui/styles";
 import "./globals.css";
-import { I18nProvider, LOCALES, msg } from "@medialane/ui/i18n";
+import { I18nProvider, LOCALES, msg, translate } from "@medialane/ui/i18n";
 import { loadMessages } from "@/i18n/messages";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 const urbanist = Urbanist({ subsets: ["latin"], display: "swap", variable: "--font-display" });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
     default: "Medialane — Creator Launchpad & NFT Marketplace",
@@ -83,6 +83,21 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
 };
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const messages = await loadMessages(locale);
+  const t = (text: string) => translate({ messages, text });
+  return {
+    ...metadata,
+    description: t(metadata.description as string),
+    openGraph: {
+      ...metadata.openGraph,
+      locale: locale === "en" ? "en_US" : locale,
+      description: t(metadata.openGraph?.description as string),
+    },
+  };
+}
 
 export function generateStaticParams() {
   return LOCALES.map(({ code }) => ({ locale: code }));

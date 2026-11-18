@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { ServiceCollectionsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "IP Club";
-const description = "Membership clubs — create tiers, mint membership cards, trade like any collection.";
+const title = msg("IP Club");
+const description = msg("Membership clubs — create tiers, mint membership cards, trade like any collection.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/club",
   title,
   description,
-  alternates: canonical("/launchpad/club"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function ClubPage() {
   return <ServiceCollectionsPage kind="club" />;

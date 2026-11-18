@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
-import { canonical } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 import VerifyEmailContent from "./verify-email-content";
 
-const title = "Verify Your Email";
-const description = "Confirm your email to unlock listing assets for sale and claiming a username.";
+const title = msg("Verify Your Email");
+const description = msg("Confirm your email to unlock listing assets for sale and claiming a username.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/verify",
   title,
   description,
-  alternates: canonical("/verify"),
-};
+  social: false,
+});
 
 export default function VerifyPage() {
   return <VerifyEmailContent />;

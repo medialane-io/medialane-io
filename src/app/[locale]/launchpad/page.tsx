@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { LaunchpadContent } from "./launchpad-content";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Launchpad";
-const description = "Creator hub — launch drops, mint assets, and deploy collections on Medialane.";
+const title = msg("Launchpad");
+const description = msg("Creator hub — launch drops, mint assets, and deploy collections on Medialane.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad",
   title,
   description,
-  alternates: canonical("/launchpad"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function LaunchpadPage() {
   return <LaunchpadContent />;

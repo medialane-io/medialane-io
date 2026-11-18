@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { DropsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Collection Drop";
-const description = "Mint limited edition drops. Set your supply cap, open a mint window, and let your community collect.";
+const title = msg("Collection Drop");
+const description = msg("Mint limited edition drops. Set your supply cap, open a mint window, and let your community collect.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/drop",
   title,
   description,
-  alternates: canonical("/launchpad/drop"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function DropPage() {
   return <DropsPage />;

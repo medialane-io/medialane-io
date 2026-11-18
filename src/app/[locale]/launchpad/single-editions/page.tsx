@@ -1,17 +1,16 @@
-import type { Metadata } from "next";
 import { SingleEditionMint } from "@medialane/ui";
 import { PageAside } from "@/components/claim/page-aside";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Mint NFT | Launchpad";
-const description = "Publish your creative work as a single-copy NFT in a collection you own.";
+const title = msg("Mint NFT | Launchpad");
+const description = msg("Publish your creative work as a single-copy NFT in a collection you own.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/single-editions",
   title,
   description,
-  alternates: canonical("/launchpad/single-editions"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function SingleEditionsPage() {
   return <SingleEditionMint aside={<PageAside kind="asset" />} />;

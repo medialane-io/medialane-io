@@ -1,19 +1,17 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { withLocale } from "@medialane/ui/i18n";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { withLocale, msg } from "@medialane/ui/i18n";
+import { pageMetadata } from "@/lib/seo";
 import { legacySettingsPath } from "@/lib/settings/rows";
 import SettingsHomePage from "@/components/settings/pages/home-page";
 
-const title = "Account Settings";
-const description = "Manage your public creator identity, username, and account.";
+const title = msg("Account Settings");
+const description = msg("Manage your public creator identity, username, and account.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/settings",
   title,
   description,
-  alternates: canonical("/settings"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default async function SettingsPage({
   params,

@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import { AccountsPage as AccountsPageClient } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Accounts";
-const description = "Browse onchain accounts on Medialane: every address with collections or assets.";
+const title = msg("Accounts");
+const description = msg("Browse onchain accounts on Medialane: every address with collections or assets.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/accounts",
   title,
   description,
-  alternates: canonical("/accounts"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Accounts" }),
-};
+  imageAlt: msg("Medialane Accounts"),
+});
 
 export default function AccountsPage() {
   return <AccountsPageClient />;

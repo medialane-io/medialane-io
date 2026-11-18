@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { chainFromSlug } from "@/lib/routes";
 import { fetchCoinMeta, ipfsToHttpServer } from "@/lib/api-server";
-import { canonical, buildSocialMetadata, buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/seo";
+import { alternates, buildSocialMetadata, buildBreadcrumbJsonLd, buildProductJsonLd } from "@/lib/seo";
 import { JsonLd } from "@medialane/ui/json-ld";
 import { CoinExploreClient } from "./coin-explore-client";
 
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ chain: string; address: string }>;
+  params: Promise<{ chain: string; address: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { chain, address } = await params;
+  const { chain, address, locale } = await params;
   const coin = await fetchCoinMeta(address);
 
   const name        = coin?.name ?? "Creator Coin";
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: name,
     description,
-    alternates: canonical(path),
+    alternates: alternates(path, locale),
     ...buildSocialMetadata({ title: name, description, imageUrl }),
   };
 }

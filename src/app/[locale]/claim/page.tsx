@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { ClaimPageClient } from "./claim-page-client";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Claims";
-const description = "Reserve your username, bring in a collection or a coin, or join the Creator's Airdrop on Medialane.";
+const title = msg("Claims");
+const description = msg("Reserve your username, bring in a collection or a coin, or join the Creator's Airdrop on Medialane.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/claim",
   title,
   description,
-  alternates: canonical("/claim"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function ClaimPage() {
   return <ClaimPageClient />;

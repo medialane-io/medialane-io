@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { canonical, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
+import { alternates, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@medialane/ui/json-ld";
 import AccountPageClient from "./account-page-client";
 
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ address: string }>;
+  params: Promise<{ address: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { address } = await params;
+  const { address, locale } = await params;
   const short = `${address.slice(0, 8)}…${address.slice(-6)}`;
   const title = `${short} | Profile`;
   const description = `View digital assets, listings, and onchain activity for ${short} on Medialane.`;
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: canonical(`/account/${address}`),
+    alternates: alternates(`/account/${address}`, locale),
     ...buildSocialMetadata({ title, description }),
   };
 }

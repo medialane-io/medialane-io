@@ -1,16 +1,14 @@
-import type { Metadata } from "next";
 import { RewardsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Rewards";
-const description =
-  "What Medialane gives back to everyone creating, collecting, and taking part.";
+const title = msg("Rewards");
+const description = msg("What Medialane gives back to everyone creating, collecting, and taking part.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/rewards",
   title,
   description,
-  alternates: canonical("/rewards"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default RewardsPage;

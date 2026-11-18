@@ -2,14 +2,14 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { IP_TYPE_DATA_MAP } from "@medialane/ui";
 import { IpTypePageClient } from "./ip-type-page-client";
-import { canonical } from "@/lib/seo";
+import { alternates } from "@/lib/seo";
 
 interface Props {
-  params: Promise<{ ipType: string }>;
+  params: Promise<{ ipType: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { ipType } = await params;
+  const { ipType, locale } = await params;
   const config = IP_TYPE_DATA_MAP[ipType];
   if (!config) return {};
   const title = config.label;
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: canonical(`/${ipType}`),
+    alternates: alternates(`/${ipType}`, locale),
     openGraph: {
       title: `${title} | Medialane`,
       description,

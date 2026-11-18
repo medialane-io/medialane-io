@@ -1,18 +1,17 @@
-import type { Metadata } from "next";
 import { HomePage } from "@/components/home";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 import { fetchFeaturedCollections } from "@/lib/api-server";
 
-const title = "Medialane — Creator Launchpad + NFT Marketplace";
-const description =
-  "Mint, license, and trade intellectual property as NFTs on Starknet, with a self-custody passkey wallet and programmable royalties.";
+const title = msg("Medialane — Creator Launchpad + NFT Marketplace");
+const description = msg("Mint, license, and trade intellectual property as NFTs on Starknet, with a self-custody passkey wallet and programmable royalties.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/",
   title,
   description,
-  alternates: canonical("/"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Medialane" }),
-};
+  imageAlt: msg("Medialane"),
+});
 
 export const revalidate = 60;
 

@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import MarketplacePageClient from "./marketplace-page-client";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Marketplace";
-const description = "Browse, buy, and license digital assets on the Medialane marketplace, permissionlessly onchain.";
+const title = msg("Marketplace");
+const description = msg("Browse, buy, and license digital assets on the Medialane marketplace, permissionlessly onchain.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/marketplace",
   title,
   description,
-  alternates: canonical("/marketplace"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Marketplace" }),
-};
+  imageAlt: msg("Medialane Marketplace"),
+});
 
 export default function MarketplacePage() {
   return <MarketplacePageClient />;
