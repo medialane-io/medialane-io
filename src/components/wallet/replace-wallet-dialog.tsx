@@ -88,7 +88,7 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
                 <RefreshCw className="h-8 w-8 text-destructive" />
               </div>
-              <p className="text-xl font-bold">{t("Generate new wallet")}</p>
+              <p aria-hidden className="text-xl font-bold">{t("Generate new wallet")}</p>
             </div>
             <MarketplaceConfirmStep
               description={WARNING}

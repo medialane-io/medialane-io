@@ -6,7 +6,7 @@ import { ClaimGate } from "@/components/claim/claim-gate";
 import { UsernameClaimSection } from "@/components/settings/username-claim-section";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = msg("Claim your Username");
+const title = msg("Claim your username");
 const description = msg("Reserve your unique creator username and get a shareable creator page at medialane.io/creator/yourname.");
 
 export const generateMetadata = pageMetadata({
@@ -20,7 +20,6 @@ export default function ClaimUsernamePage() {
     <ClaimRouteShell
       icon={<AtSign className="h-4 w-4 text-white" />}
       title="Claim your Username"
-      subtitle="Reserve your creator URL at medialane.io/creator/yourname."
       aside={<PageAside kind="claimUsername" />}
     >
       <ClaimGate>

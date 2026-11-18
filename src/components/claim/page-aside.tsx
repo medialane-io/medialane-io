@@ -73,7 +73,7 @@ const ASIDES = {
     steps: [msg("Create your club — set name, symbol, and cover image"), msg("Create membership tiers — each gets its own supply and optional validity window"), msg("Mint membership cards and sell them on the marketplace like any asset")],
     trustIcon: Users,
     trustLead: msg("Your club, your rules."),
-    trust: msg("Only you can create tiers and mint cards. Members keep their cards and trade them freely."),
+    trust: msg("Members keep their cards and trade them freely."),
   },
   coin: {
     included: [
@@ -131,7 +131,7 @@ const ASIDES = {
     steps: [msg("Create your tickets collection — set name, symbol, and cover image"), msg("Create tickets — each gets its own supply and optional validity window"), msg("Mint tickets to your audience directly from your collection page")],
     trustIcon: Ticket,
     trustLead: msg("Your tickets, your rules."),
-    trust: msg("Only you can create and mint tickets. Holders keep their tickets forever."),
+    trust: msg("Holders keep their tickets forever."),
   },
   mintEdition: {
     included: [

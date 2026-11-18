@@ -5,7 +5,7 @@ import { msg } from "@medialane/ui/i18n";
 
 export const generateMetadata = pageMetadata({
   path: "/confirm-email",
-  title: msg("Confirm Your Email"),
+  title: msg("Confirm your email"),
   description: msg("Confirm your email to keep your Medialane account."),
   robots: { index: false, follow: false },
   social: false,

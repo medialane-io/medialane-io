@@ -6,14 +6,14 @@ import { PageAside } from "@/components/claim/page-aside";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
-const title = msg("Claim Memecoin");
+const title = msg("Claim memecoin");
 const description = msg("Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/memecoin",
   title,
   description,
-  imageAlt: msg("Claim a Memecoin on Medialane"),
+  imageAlt: msg("Claim a memecoin on Medialane"),
 });
 
 export default function MemecoinClaimPage() {

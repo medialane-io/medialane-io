@@ -17,12 +17,12 @@ export const NAV_COMMANDS = navGroups([
     ],
   },
   {
-    heading: msg("Create & Mint"),
+    heading: msg("Create & mint"),
     items: [
       "mint-ip-asset", "create-collection", "mint-editions", "create-1155",
       "pop-create", "pop-browse", "tickets-create", "club-create",
       "sponsorship-create", "launch-coin",
-      { id: "claim-memecoin", label: msg("Claim a Memecoin"), icon: Coins, href: "/claim/memecoin", keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
+      { id: "claim-memecoin", label: msg("Claim a memecoin"), icon: Coins, href: "/claim/memecoin", keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
       "remix",
     ],
   },
