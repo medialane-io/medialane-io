@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@medialane/ui/router";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { mediaWallet } from "@/lib/wallet/client";
 import { resolveOnboardingRedirect } from "@/lib/wallet/onboarding-gate";

@@ -1,0 +1,89 @@
+import { redirect } from "next/navigation";
+import { withLocale } from "@medialane/ui/i18n";
+import type { Metadata } from "next";
+import { JsonLd } from "@medialane/ui/json-ld";
+import { fetchCreatorProfile, ipfsToHttpServer } from "@/lib/api-server";
+import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
+import CreatorUsernamePageClient from "./creator-username-client";
+import { profileIdentity } from "@medialane/ui";
+
+export const revalidate = 60;
+
+interface Props {
+  params: Promise<{ address: string; locale: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { address } = await params;
+
+  if (address.startsWith("0x") || address.startsWith("0X")) {
+    return { title: `${address.slice(0, 8)}…` };
+  }
+
+  const profile = await fetchCreatorProfile(address);
+  const { identity: name } = profileIdentity({
+    username: profile?.username ?? address,
+    name: profile?.name,
+    walletAddress: profile?.walletAddress,
+  });
+  const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;
+  const description = truncateDescription(bio);
+  const path = `/creator/${address}`;
+  const imageUrl = profile?.avatarImage ? ipfsToHttpServer(profile.avatarImage) : undefined;
+  const social = buildSocialMetadata({ title: name, description, imageUrl, imageAlt: name });
+
+  return {
+    title: name,
+    description,
+    alternates: canonical(path),
+    ...social,
+    openGraph: { ...social.openGraph, type: "profile" },
+  };
+}
+
+export default async function CreatorPage({ params }: Props) {
+  const { address, locale } = await params;
+
+  if (address.startsWith("0x") || address.startsWith("0X")) {
+    redirect(withLocale(`/account/${address}`, locale));
+  }
+
+  const profile = await fetchCreatorProfile(address);
+  const { identity: name } = profileIdentity({
+    username: profile?.username ?? address,
+    name: profile?.name,
+    walletAddress: profile?.walletAddress,
+  });
+  const bio = profile?.bio ?? `Profile for ${name} on Medialane.`;
+  const path = `/creator/${address}`;
+  const image = ipfsToHttpServer(profile?.avatarImage || "");
+  const sameAs = [profile?.websiteUrl, profile?.twitterUrl].filter(Boolean);
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      name: `${name} | Medialane`,
+      url: absoluteUrl(path),
+      mainEntity: {
+        "@type": "Person",
+        name,
+        description: bio,
+        url: absoluteUrl(path),
+        ...(image && { image }),
+        ...(sameAs.length > 0 && { sameAs }),
+      },
+    },
+    buildBreadcrumbJsonLd([
+      { name: "Accounts", path: "/accounts" },
+      { name, path },
+    ]),
+  ];
+
+  return (
+    <>
+      <JsonLd data={jsonLd} />
+      <CreatorUsernamePageClient username={address} />
+    </>
+  );
+}

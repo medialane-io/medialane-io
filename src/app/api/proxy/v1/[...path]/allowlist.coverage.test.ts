@@ -18,7 +18,7 @@ const EXCLUDED_FILES = new Set([
   join(REPO_ROOT, "src/lib/api-server.ts"),
   join(REPO_ROOT, "src/lib/backend-metadata.ts"),
 
-  join(REPO_ROOT, "src/app/collection/[slug]/page.tsx"),
+  join(REPO_ROOT, "src/app/[locale]/collection/[slug]/page.tsx"),
 ]);
 const UI_DIST_DIR = join(REPO_ROOT, "node_modules/@medialane/ui/dist");
 

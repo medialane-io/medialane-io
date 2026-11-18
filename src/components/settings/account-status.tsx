@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { cn } from "@medialane/ui";
 import type { RowTone } from "@/lib/settings/rows";

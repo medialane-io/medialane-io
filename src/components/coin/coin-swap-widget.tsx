@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { Loader2, Wallet } from "lucide-react";
 import { getTokenBySymbol, parseAmount, formatAmount } from "@medialane/sdk";
 import { GradientButton, useSwapQuote, useTransaction, cn } from "@medialane/ui";

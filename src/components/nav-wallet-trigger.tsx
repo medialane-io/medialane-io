@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@medialane/ui/router";
 import { NavWalletTrigger as SharedNavWalletTrigger, useMediaWallet, useCreatorProfile } from "@medialane/ui";
 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";

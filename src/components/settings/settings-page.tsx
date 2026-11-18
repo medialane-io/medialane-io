@@ -1,7 +1,7 @@
 "use client";
 
 import { ServiceFormShell, cn } from "@medialane/ui";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import type { ElementType, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Settings as SettingsIcon, Wallet } from "lucide-react";
 import { Button } from "@medialane/ui/button";

@@ -1,12 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname } from "@medialane/ui/router";
 import {
   NavCommandMenu,
   NavBrandButton,
   ThemeAmbientBackground,
   useCreatorProfile,
 } from "@medialane/ui";
+import { NavLanguageSwitch } from "@medialane/ui/nav-language-switch";
 import { NavThemeToggle } from "@medialane/ui/nav-theme-toggle";
 import { NAV_COMMANDS } from "@/lib/nav-commands";
 import { NavConnectButton } from "@/components/nav-connect-button";
@@ -30,7 +31,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <NavCommandMenu
         commands={NAV_COMMANDS}
-        footerSlot={<NavThemeToggle />}
+        footerSlot={
+          <>
+            <NavLanguageSwitch />
+            <NavThemeToggle />
+          </>
+        }
         showKeyboardHints={false}
         brandSlot={<NavConnectButton />}
         search

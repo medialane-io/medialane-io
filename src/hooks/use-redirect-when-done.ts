@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@medialane/ui/router";
 
 const CELEBRATION_MS = 1600;
 

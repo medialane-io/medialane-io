@@ -2,7 +2,7 @@
 
 import { ACCOUNT_NOT_READY } from "@/lib/account-gate";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { assetHref } from "@/lib/routes";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import {

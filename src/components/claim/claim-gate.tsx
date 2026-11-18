@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@medialane/ui/link";
+import { usePathname } from "@medialane/ui/router";
 import type { ReactNode } from "react";
 import { Wallet } from "lucide-react";
 import { Button } from "@medialane/ui/button";
