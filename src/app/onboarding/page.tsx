@@ -9,6 +9,7 @@ import { useRedirectWhenDone } from "@/hooks/use-redirect-when-done";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { connectHref } from "@/lib/connect-href";
 import { safeRelativePath } from "@/lib/safe-redirect";
+import { useT } from "@medialane/ui/i18n";
 
 export default function OnboardingPage() {
   return (
@@ -21,6 +22,7 @@ export default function OnboardingPage() {
 }
 
 function OnboardingContent() {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { session, isLoading } = useSession();
@@ -37,7 +39,7 @@ function OnboardingContent() {
   if (isLoading || needsSignIn || !session) return null;
 
   return (
-    <AccountCard title="Secure your account" description="Finish setting up your account.">
+    <AccountCard title={t("Secure your account")} description={t("Finish setting up your account.")}>
       <OnboardingFlow start="wallet" onDone={onDone} />
     </AccountCard>
   );

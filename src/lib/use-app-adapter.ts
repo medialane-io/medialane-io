@@ -10,8 +10,10 @@ import { useSession } from "@medialane/ui/utils/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { lockVenueSigner } from "@/lib/wallet/venue-signer";
 import { resolveImage } from "@/lib/utils";
+import { useT } from "@medialane/ui/i18n";
 
 export function useAppAdapter(): MedialaneApp {
+  const t = useT();
   const { address, signer } = useWalletNativeSession();
   const { session } = useSession();
   const router = useRouter();
@@ -28,8 +30,8 @@ export function useAppAdapter(): MedialaneApp {
     connectLabel: "Connect with email",
     verifyEmailHref: "/settings/email",
     companion: {
-      title: "Trade with your Starknet wallet",
-      description: "Interact with this asset on our permissionless dapp.",
+      title: t("Trade with your Starknet wallet"),
+      description: t("Interact with this asset on our permissionless dapp."),
       icon: Wallet,
       origin: "https://starknet.medialane.io",
     },

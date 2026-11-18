@@ -12,8 +12,10 @@ import { EXPLORER_URL } from "@/lib/constants";
 import { ReplaceWalletDialog } from "@/components/wallet/replace-wallet-dialog";
 import { unlockOwnerKey } from "@/lib/wallet/passkey";
 import { loadSealedOwner } from "@/lib/wallet/store";
+import { useT } from "@medialane/ui/i18n";
 
 export default function WalletSettingsPage() {
+  const t = useT();
   const { address } = useWalletNativeSession();
   const { open: openWalletPanel } = useMediaWallet();
   const [replaceOpen, setReplaceOpen] = useState(false);
@@ -21,13 +23,13 @@ export default function WalletSettingsPage() {
   return (
     <>
       <SettingsGate>
-        <SettingsPage title="Wallet" subtitle="Account secured onchain" icon={<Wallet className="h-4 w-4 text-white" />}>
+        <SettingsPage title={t("Wallet")} subtitle={t("Account secured onchain")} icon={<Wallet className="h-4 w-4 text-white" />}>
           <AccountSection
             icon={Wallet}
             iconColor="text-violet-600 dark:text-violet-400"
             iconBg="bg-violet-500/10"
-            title="Media Wallet"
-            description="Account secured with immutable smart contracts and self-custodial wallet."
+            title={t("Media Wallet")}
+            description={t("Account secured with immutable smart contracts and self-custodial wallet.")}
           >
             {address ? (
               <>
@@ -41,11 +43,11 @@ export default function WalletSettingsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Button onClick={() => openWalletPanel()} variant="outline" size="sm">
                     <Wallet className="mr-1.5 h-3.5 w-3.5" />
-                    Open wallet
+                    {t("Open wallet")}
                   </Button>
                   <Button asChild variant="outline" size="sm">
                     <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer">
-                      View on Voyager
+                      {t("View on Voyager")}
                       <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
                     </a>
                   </Button>
@@ -63,7 +65,7 @@ export default function WalletSettingsPage() {
                   <Button asChild variant="outline" size="sm">
                     <Link href="/settings/recovery">
                       <LifeBuoy className="mr-1.5 h-3.5 w-3.5" />
-                      Recovery options
+                      {t("Recovery options")}
                     </Link>
                   </Button>
                 }
@@ -75,11 +77,11 @@ export default function WalletSettingsPage() {
             icon={RefreshCw}
             iconColor="text-destructive"
             iconBg="bg-destructive/10"
-            title="Generate New Wallet"
-            description="This replaces the active wallet on this account. Assets in the current wallet can be moved first."
+            title={t("Generate New Wallet")}
+            description={t("This replaces the active wallet on this account. Assets in the current wallet can be moved first.")}
           >
             <Button onClick={() => setReplaceOpen(true)} variant="destructive" size="sm">
-              Generate a new wallet
+              {t("Generate a new wallet")}
             </Button>
           </AccountSection>
         </SettingsPage>

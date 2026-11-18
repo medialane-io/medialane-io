@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@medialane/ui/i18n";
 
 const GENESIS_MINT_DATE = new Date("2026-03-27T00:00:00Z");
 
@@ -40,6 +41,7 @@ function DigitBlock({ value, label }: { value: string; label: string }) {
 }
 
 export function LaunchCountdown() {
+  const t = useT();
 
   const [time, setTime] = useState<ReturnType<typeof getTimeLeft> | null>(null);
 
@@ -77,17 +79,17 @@ export function LaunchCountdown() {
       <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2">
         <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
         <span className="text-sm font-semibold text-emerald-400 uppercase tracking-widest">
-          Live on Starknet
+          {t("Live on Starknet")}
         </span>
       </div>
     );
   }
 
   const units = [
-    { label: "Days", value: pad(time.days) },
-    { label: "Hours", value: pad(time.hours) },
-    { label: "Mins", value: pad(time.minutes) },
-    { label: "Secs", value: pad(time.seconds) },
+    { label: t("Days"), value: pad(time.days) },
+    { label: t("Hours"), value: pad(time.hours) },
+    { label: t("Mins"), value: pad(time.minutes) },
+    { label: t("Secs"), value: pad(time.seconds) },
   ];
 
   return (

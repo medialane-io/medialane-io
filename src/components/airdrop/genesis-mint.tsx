@@ -5,8 +5,10 @@ import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { GenesisMintCard, type GenesisMintCopy } from "@/components/genesis-mint-card";
+import { useT } from "@medialane/ui/i18n";
 
 export function AirdropEventCard() {
+  const t = useT();
   const [errored, setErrored] = useState(false);
   const src = "/genesis.jpg";
   return (
@@ -17,13 +19,13 @@ export function AirdropEventCard() {
             <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
               <ImageIcon className="h-7 w-7 text-primary/40" />
             </div>
-            <p className="text-xs text-muted-foreground font-medium">Medialane Airdrop</p>
+            <p className="text-xs text-muted-foreground font-medium">{t("Medialane Airdrop")}</p>
           </div>
         ) : (
 
           <Image
             src={src}
-            alt="Medialane Creator's Airdrop"
+            alt={t("Medialane Creator's Airdrop")}
             fill
             className="object-cover"
             onError={() => setErrored(true)}

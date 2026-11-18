@@ -11,8 +11,10 @@ import { AddressDisplay } from "@medialane/ui/address-display";
 import { timeAgo, useRemixOffers } from "@medialane/ui";
 import type { RemixOffer } from "@/types/remix-offers";
 import Link from "next/link";
+import { useT } from "@medialane/ui/i18n";
 
 export default function PortfolioLicensingPage() {
+  const t = useT();
   const { address: walletAddress } = useWalletNativeSession();
   const { offers: incoming, isLoading: loadingIn, mutate: mutateIn } = useRemixOffers("creator");
   const { offers: outgoing, isLoading: loadingOut } = useRemixOffers("requester");
@@ -38,7 +40,7 @@ export default function PortfolioLicensingPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-semibold text-muted-foreground">License requests received</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">{t("License requests received")}</h2>
           {pendingIn.length > 0 && (
             <span className="h-5 min-w-5 rounded-full bg-primary text-2xs font-bold text-primary-foreground flex items-center justify-center px-1">
               {pendingIn.length}
@@ -52,7 +54,7 @@ export default function PortfolioLicensingPage() {
           </div>
         ) : incoming.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            No license requests yet. When someone requests to license your assets for a remix, they&apos;ll appear here.
+            {t("No license requests yet. When someone requests to license your assets for a remix, they'll appear here.")}
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">
@@ -65,7 +67,7 @@ export default function PortfolioLicensingPage() {
                       href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
-                      View asset
+                      {t("View asset")}
                     </Link>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -86,13 +88,13 @@ export default function PortfolioLicensingPage() {
                   <div className="flex gap-2 shrink-0">
                     <Button size="sm" onClick={() => handleApproveClick(offer)}>
                       <Check className="h-3.5 w-3.5 mr-1" />
-                      Approve
+                      {t("Approve")}
                     </Button>
                   </div>
                 )}
                 {offer.status === "APPROVED" && offer.remixContract && offer.remixTokenId && (
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>View remix</Link>
+                    <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>{t("View remix")}</Link>
                   </Button>
                 )}
               </div>
@@ -104,7 +106,7 @@ export default function PortfolioLicensingPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-muted-foreground">License requests sent</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">{t("License requests sent")}</h2>
         </div>
 
         {loadingOut ? (
@@ -113,7 +115,7 @@ export default function PortfolioLicensingPage() {
           </div>
         ) : outgoing.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            You haven&apos;t sent any license requests yet.
+            {t("You haven't sent any license requests yet.")}
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">
@@ -126,7 +128,7 @@ export default function PortfolioLicensingPage() {
                       href={assetHref("STARKNET", offer.originalContract, offer.originalTokenId)}
                       className="text-sm font-medium hover:text-primary transition-colors truncate"
                     >
-                      View asset
+                      {t("View asset")}
                     </Link>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -140,7 +142,7 @@ export default function PortfolioLicensingPage() {
                   <Button size="sm" variant="outline" asChild>
                     <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>
                       <GitBranch className="h-3.5 w-3.5 mr-1" />
-                      {offer.status === "APPROVED" ? "Buy remix" : "View remix"}
+                      {offer.status === "APPROVED" ? t("Buy remix") : t("View remix")}
                     </Link>
                   </Button>
                 )}
@@ -161,14 +163,15 @@ export default function PortfolioLicensingPage() {
 }
 
 function StatusBadge({ status }: { status: RemixOffer["status"] }) {
+  const t = useT();
   const config: Record<RemixOffer["status"], { label: string; className: string }> = {
-    PENDING:      { label: "Awaiting creator", className: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20" },
-    AUTO_PENDING: { label: "Auto",             className: "bg-brand-blue/10 text-brand-blue border border-brand-blue/20" },
-    APPROVED:     { label: "License granted",  className: "bg-primary/10 text-primary border border-primary/20" },
-    COMPLETED:    { label: "Licensed",         className: "bg-green-500/10 text-green-500 border border-green-500/20" },
-    REJECTED:     { label: "Declined",         className: "bg-destructive/10 text-destructive border border-destructive/20" },
-    EXPIRED:      { label: "Expired",          className: "bg-muted text-muted-foreground border border-border" },
-    SELF_MINTED:  { label: "Self-minted",      className: "bg-primary/10 text-primary border border-primary/20" },
+    PENDING:      { label: t("Awaiting creator"), className: "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20" },
+    AUTO_PENDING: { label: t("Auto"),             className: "bg-brand-blue/10 text-brand-blue border border-brand-blue/20" },
+    APPROVED:     { label: t("License granted"),  className: "bg-primary/10 text-primary border border-primary/20" },
+    COMPLETED:    { label: t("Licensed"),         className: "bg-green-500/10 text-green-500 border border-green-500/20" },
+    REJECTED:     { label: t("Declined"),         className: "bg-destructive/10 text-destructive border border-destructive/20" },
+    EXPIRED:      { label: t("Expired"),          className: "bg-muted text-muted-foreground border border-border" },
+    SELF_MINTED:  { label: t("Self-minted"),      className: "bg-primary/10 text-primary border border-primary/20" },
   };
   const c = config[status];
   return (

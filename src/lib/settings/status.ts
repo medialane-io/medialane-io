@@ -1,4 +1,5 @@
 import { formatDeadline, type RowTone } from "./rows";
+import { msg } from "@medialane/ui/i18n";
 
 export interface StatusInput {
   address: string | null;
@@ -40,14 +41,14 @@ export function accountStatus(input: StatusInput): { headline: StatusHeadline | 
 
   const signin: StatusLine = {
     id: "signin",
-    label: "Sign-in",
+    label: msg("Sign-in"),
     value: email === null ? null : email.email,
     note: email?.email ? (email.verified ? { text: "Confirmed", tone: "ok" } : { text: "Not confirmed", tone: "warn" }) : undefined,
   };
 
   const wallet: StatusLine = {
     id: "wallet",
-    label: "Wallet",
+    label: msg("Wallet"),
     value: address && walletDeployed !== null ? shortAddress(address) : null,
     note:
       walletDeployed === null ? undefined : walletDeployed ? { text: "Live onchain", tone: "ok" } : { text: "Setting up", tone: "muted" },
@@ -55,15 +56,15 @@ export function accountStatus(input: StatusInput): { headline: StatusHeadline | 
 
   const deviceLine: StatusLine = {
     id: "devices",
-    label: "Devices",
+    label: msg("Devices"),
     value: devices === null ? null : `${devices} signing device${devices === 1 ? "" : "s"}`,
   };
 
   const recovery: StatusLine = {
     id: "recovery",
-    label: "Recovery",
+    label: msg("Recovery"),
     value: guardians === null ? null : guardians > 0 ? "Guardian set" : "Not set up",
-    action: guardians === 0 ? { label: "Set up", href: "/settings/recovery" } : undefined,
+    action: guardians === 0 ? { label: msg("Set up"), href: "/settings/recovery" } : undefined,
   };
 
   return { headline: headline(input), lines: [signin, wallet, deviceLine, recovery] };

@@ -19,6 +19,7 @@ import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
 import { ArchiveAssetDialog, formatDisplayPrice } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
+import { useT } from "@medialane/ui/i18n";
 
 type Context = { refresh: () => void };
 
@@ -64,6 +65,7 @@ export function useReceivedOfferActions({ refresh }: Context): PortfolioOrderAct
 }
 
 export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActions {
+  const t = useT();
   const tx = useMarketplaceTransaction();
   const [selectedCounter, setSelectedCounter] = useState<ApiOrder | null>(null);
 
@@ -95,8 +97,8 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
           <MarketplaceDialog
             open={tx.phase !== "idle"}
             onOpenChange={(v) => { if (!v) dismissResult(); }}
-            title="Counter-offer accept"
-            description="On-chain status for the counter-offer you accepted."
+            title={t("Counter-offer accept")}
+            description={t("On-chain status for the counter-offer you accepted.")}
           >
             <div className="flex flex-col items-center gap-3 pt-6 px-6">
               <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border bg-gradient-to-br from-muted to-muted-foreground/20">
@@ -125,9 +127,9 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
               <div className="flex flex-col items-center gap-4 p-6 pt-3">
                 <Loader2 className="h-7 w-7 animate-spin text-primary" />
                 <div className="text-center space-y-1">
-                  <p className="font-semibold">Confirming onchain…</p>
+                  <p className="font-semibold">{t("Confirming onchain…")}</p>
                   <p className="text-xs text-muted-foreground">
-                    Keep this window open until it finishes.
+                    {t("Keep this window open until it finishes.")}
                   </p>
                 </div>
               </div>
@@ -137,11 +139,11 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
               <div className="flex flex-col items-center gap-4 p-6 pt-3">
                 <div className="text-center space-y-1">
                   <p className="font-bold text-lg flex items-center justify-center gap-1.5">
-                    Counter-offer accepted
+                    {t("Counter-offer accepted")}
                     <Sparkles className="h-4 w-4 text-brand-orange" />
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    The token is now yours.
+                    {t("The token is now yours.")}
                   </p>
                 </div>
                 {resultTxHash && (
@@ -156,7 +158,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                   </a>
                 )}
                 <Button className="w-full h-11" onClick={dismissResult}>
-                  Done
+                  {t("Done")}
                 </Button>
               </div>
             )}
@@ -167,11 +169,11 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                   <AlertCircle className="h-6 w-6 text-destructive" />
                 </div>
                 <div className="text-center space-y-1">
-                  <p className="font-bold text-base">Accept failed</p>
+                  <p className="font-bold text-base">{t("Accept failed")}</p>
                   <p className="text-sm text-muted-foreground">{resultError}</p>
                 </div>
                 <Button variant="outline" className="w-full h-11" onClick={dismissResult}>
-                  Close
+                  {t("Close")}
                 </Button>
               </div>
             )}

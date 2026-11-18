@@ -7,12 +7,14 @@ import { Button } from "@medialane/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { confirmEmailOutcome, readConfirmToken } from "@/lib/confirm-email";
+import { useT } from "@medialane/ui/i18n";
 
 type Step = "confirming" | "confirmed" | "invalid";
 
 const REDIRECT_DELAY_MS = 2000;
 
 export default function ConfirmEmailContent() {
+  const t = useT();
   const router = useRouter();
   const [step, setStep] = useState<Step>("confirming");
   const started = useRef(false);
@@ -36,9 +38,9 @@ export default function ConfirmEmailContent() {
   }, [step, router]);
 
   const view = {
-    confirming: { icon: <Loader2 className="h-6 w-6 animate-spin text-primary" />, title: "Confirming your email…", body: "" },
-    confirmed: { icon: <CheckCircle2 className="h-6 w-6 text-emerald-500" />, title: "You're all set", body: "Your email is confirmed. Taking you to Medialane…" },
-    invalid: { icon: <MailWarning className="h-6 w-6 text-primary" />, title: "This link has expired", body: "Please sign up again to get a new one." },
+    confirming: { icon: <Loader2 className="h-6 w-6 animate-spin text-primary" />, title: t("Confirming your email…"), body: "" },
+    confirmed: { icon: <CheckCircle2 className="h-6 w-6 text-emerald-500" />, title: t("You're all set"), body: "Your email is confirmed. Taking you to Medialane…" },
+    invalid: { icon: <MailWarning className="h-6 w-6 text-primary" />, title: t("This link has expired"), body: "Please sign up again to get a new one." },
   }[step];
 
   return (
@@ -54,12 +56,12 @@ export default function ConfirmEmailContent() {
         <CardContent>
           {step === "confirmed" ? (
             <Button size="lg" className="w-full" onClick={() => router.push("/")}>
-              Go to Medialane
+              {t("Go to Medialane")}
             </Button>
           ) : null}
           {step === "invalid" ? (
             <Button size="lg" className="w-full" onClick={() => router.push("/connect")}>
-              Sign up again
+              {t("Sign up again")}
             </Button>
           ) : null}
         </CardContent>

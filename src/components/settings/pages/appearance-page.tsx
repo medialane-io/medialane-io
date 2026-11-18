@@ -11,8 +11,10 @@ import { SettingsGate, SettingsPage, SettingsSection } from "@/components/settin
 import { useProfileForm } from "@/hooks/use-profile-form";
 import { useMyUsernameClaim } from "@/hooks/use-username-claims";
 import { resolveImage } from "@/lib/utils";
+import { useT } from "@medialane/ui/i18n";
 
 export default function AppearanceSettingsPage() {
+  const t = useT();
   const { address, isLoading, form, setField, saving, saveStatus, saveError, save } = useProfileForm();
   const { username } = useMyUsernameClaim();
   const { tokens, isLoading: assetsLoading } = useTokensByOwner(address ?? null, 1, 100);
@@ -28,8 +30,8 @@ export default function AppearanceSettingsPage() {
   return (
     <SettingsGate>
       <SettingsPage
-        title="Avatar & theme"
-        subtitle="Pick one of your NFTs. It becomes your avatar and a subtle background theme across Medialane."
+        title={t("Avatar & theme")}
+        subtitle={t("Pick one of your NFTs. It becomes your avatar and a subtle background theme across Medialane.")}
         icon={<ImageIcon className="h-4 w-4 text-white" />}
         aside={
           <ProfileLivePreview form={form} approvedUsername={username} walletAddress={address} fallbackImage={assets[0]?.image} />
@@ -39,7 +41,7 @@ export default function AppearanceSettingsPage() {
           <Skeleton className="h-40 w-full" />
         ) : (
           <>
-            <SettingsSection title="Avatar & app theme" description="Images for your profile">
+            <SettingsSection title={t("Avatar & app theme")} description={t("Images for your profile")}>
               <AssetPicker
                 assets={assets}
                 isLoading={assetsLoading}
@@ -54,15 +56,15 @@ export default function AppearanceSettingsPage() {
                 {saving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving…
+                    {t("Saving…")}
                   </>
                 ) : (
-                  "Save changes"
+                  t("Save changes")
                 )}
               </Button>
               {saveStatus === "saved" ? (
                 <span className="flex items-center gap-1.5 text-sm text-emerald-500">
-                  <CheckCircle2 className="h-4 w-4" /> Saved
+                  <CheckCircle2 className="h-4 w-4" /> {t("Saved")}
                 </span>
               ) : null}
               {saveStatus === "error" && saveError ? <span className="text-sm text-destructive">{saveError}</span> : null}

@@ -7,8 +7,10 @@ import { Textarea } from "@medialane/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { useSession } from "@medialane/ui/utils/use-session";
+import { useT } from "@medialane/ui/i18n";
 
 export function SupportForm({ onBack }: { onBack: () => void }) {
+  const t = useT();
   const { session } = useSession();
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,10 +36,10 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
     return (
       <div className="w-full space-y-4">
         <p className="text-sm text-muted-foreground">
-          Thanks, we&apos;ve got your message. We&apos;ll write back to <span className="text-foreground">{email}</span>.
+          {t("Thanks, we've got your message. We'll write back to")} <span className="text-foreground">{email}</span>.
         </p>
         <Button variant="ghost" className="w-full" onClick={onBack}>
-          Back
+          {t("Back")}
         </Button>
       </div>
     );
@@ -46,14 +48,14 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
   return (
     <div className="w-full space-y-4">
       <div className="space-y-1">
-        <p className="text-sm font-medium">Contact support</p>
+        <p className="text-sm font-medium">{t("Contact support")}</p>
         <p className="text-sm text-muted-foreground">
-          We&apos;ll reply to <span className="text-foreground">{email}</span>.
+          {t("We'll reply to")} <span className="text-foreground">{email}</span>.
         </p>
       </div>
       <div className="space-y-1.5">
         <label htmlFor="support-message" className="text-xs text-muted-foreground">
-          What happened? (optional)
+          {t("What happened? (optional)")}
         </label>
         <Textarea
           id="support-message"
@@ -67,10 +69,10 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button className="w-full" onClick={() => void send()} disabled={sending}>
         {sending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Send
+        {t("Send")}
       </Button>
       <Button variant="ghost" className="w-full" onClick={onBack} disabled={sending}>
-        Back
+        {t("Back")}
       </Button>
     </div>
   );

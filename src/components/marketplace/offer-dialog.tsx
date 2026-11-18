@@ -21,11 +21,12 @@ import {
   orderFormSchema,
   type OrderFormValues,
 } from "@medialane/ui";
-import { DURATION_OPTIONS } from "@/lib/constants";
+import { useDurationOptions } from "@/lib/use-duration-options";
 import { resolveImage } from "@/lib/utils";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useTokenBalance, hasSufficientBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
+import { useT } from "@medialane/ui/i18n";
 
 type FormValues = OrderFormValues;
 
@@ -48,6 +49,8 @@ export function OfferDialog({
   tokenImage: tokenImageRaw,
   tokenStandard,
 }: OfferDialogProps) {
+  const t = useT();
+  const durationOptions = useDurationOptions();
   const tokenImage = resolveImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
@@ -107,25 +110,25 @@ export function OfferDialog({
       open={open}
       onOpenChange={handleClose}
       title={`Make an offer on ${name}`}
-      description="Set your offer price, currency, and duration to place an onchain offer."
+      description={t("Set your offer price, currency, and duration to place an onchain offer.")}
     >
       <TransactionDialogStates
         phase={phase}
         asset={{ name, image: tokenImage }}
         txHash={txHash}
         error={error}
-        success={successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` })}
-        successActions={[{ label: "Done", onClick: () => onOpenChange(false) }]}
+        success={successMessages.offered({ name, price: `${pendingValues?.price} ${pendingValues?.currency}` }, t)}
+        successActions={[{ label: t("Done"), onClick: () => onOpenChange(false) }]}
         successChildren={<RewardEarned actionType="make_offer" />}
-        errorTitle="Offer failed"
-        errorDescription="The transaction was submitted, but the offer could not be completed."
+        errorTitle={t("Offer failed")}
+        errorDescription={t("The transaction was submitted, but the offer could not be completed.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >
         {!hasWallet ? (
           <DialogSignInGate
-            title="Secure your account to make an offer"
-            description="You need an account to place offers."
+            title={t("Secure your account to make an offer")}
+            description={t("You need an account to place offers.")}
           />
         ) : (
           <>
@@ -137,7 +140,7 @@ export function OfferDialog({
               badge={is1155 ? (
                 <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
                   <Layers className="h-3 w-3" />
-                  Multi-edition
+                  {t("Multi-edition")}
                 </span>
               ) : undefined}
             />
@@ -151,7 +154,7 @@ export function OfferDialog({
 
                   <OrderFields
                     form={form}
-                    durationOptions={DURATION_OPTIONS}
+                    durationOptions={durationOptions}
                     busy={busy}
                     priceLabel={is1155 ? "Price per edition" : "Offer price"}
                     quantity={is1155 ? {} : undefined}
@@ -164,9 +167,7 @@ export function OfferDialog({
                   {balanceSufficient === false && (
                     <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">
-                        Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.
-                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">{t("Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.", { watchedCurrency })}</p>
                     </div>
                   )}
 
@@ -175,9 +176,9 @@ export function OfferDialog({
                   <div className="pt-1 space-y-2">
                     <GradientButton type="submit" disabled={busy}>
                       <HandCoins className="h-4 w-4" />
-                      Submit offer
+                      {t("Submit offer")}
                     </GradientButton>
-                    <DialogNote>Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.</DialogNote>
+                    <DialogNote>{t("Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.")}</DialogNote>
                   </div>
 
                 </form>

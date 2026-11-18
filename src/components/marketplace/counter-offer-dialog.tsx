@@ -17,7 +17,8 @@ import { useMarketplaceTransaction } from "@/hooks/use-marketplace-transaction";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { makeCounterOffer } from "@/lib/marketplace-intents";
 import { CurrencyIcon } from "@medialane/ui/currency-icon";
-import { DURATION_OPTIONS } from "@/lib/constants";
+import { useDurationOptions } from "@/lib/use-duration-options";
+import { useT } from "@medialane/ui/i18n";
 
 function toRawWei(humanAmount: string, decimals: number): string {
   const parts = humanAmount.replace(/,/g, "").split(".");
@@ -51,6 +52,8 @@ export function CounterOfferDialog({
   currencySymbol,
   currencyDecimals,
 }: CounterOfferDialogProps) {
+  const t = useT();
+  const durationOptions = useDurationOptions();
   const { hasWallet } = useWalletNativeSession();
   const { phase, busy: isProcessing, txHash, error, start, reset } = useMarketplaceTransaction();
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
@@ -90,24 +93,24 @@ export function CounterOfferDialog({
     <MarketplaceDialog
       open={open}
       onOpenChange={handleClose}
-      title="Send a counter-offer"
-      description="Propose a different price to the buyer. Your NFT will be listed as a counter-offer, verifiable onchain."
+      title={t("Send a counter-offer")}
+      description={t("Propose a different price to the buyer. Your NFT will be listed as a counter-offer, verifiable onchain.")}
     >
       <TransactionDialogStates
         phase={phase}
         asset={{ name, image: tokenImage }}
         txHash={txHash}
         error={error}
-        success={successMessages.countered({ name, price: `${pendingValues?.price} ${currencySymbol}` })}
-        errorTitle="Counter-offer failed"
-        errorDescription="The transaction was submitted, but the counter-offer could not be completed."
+        success={successMessages.countered({ name, price: `${pendingValues?.price} ${currencySymbol}` }, t)}
+        errorTitle={t("Counter-offer failed")}
+        errorDescription={t("The transaction was submitted, but the counter-offer could not be completed.")}
         onRetry={reset}
         onDone={() => handleClose(false)}
       >
         {!hasWallet ? (
           <DialogSignInGate
-            title="Secure your account to send a counter-offer"
-            description="You need an account to counter bids."
+            title={t("Secure your account to send a counter-offer")}
+            description={t("You need an account to counter bids.")}
           />
         ) : (
           <>
@@ -122,7 +125,7 @@ export function CounterOfferDialog({
                 <p className="font-bold text-base leading-tight truncate">{name}</p>
                 {currentBid && (
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Current bid</span>
+                    <span>{t("Current bid")}</span>
                     <Badge variant="secondary">{currentBid}</Badge>
                   </div>
                 )}
@@ -135,7 +138,7 @@ export function CounterOfferDialog({
                     name="price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your counter price</FormLabel>
+                        <FormLabel>{t("Your counter price")}</FormLabel>
                         <div className="relative">
                           <FormControl>
                             <Input
@@ -165,10 +168,10 @@ export function CounterOfferDialog({
                     name="durationSeconds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valid for</FormLabel>
+                        <FormLabel>{t("Valid for")}</FormLabel>
                         <FormControl>
                           <DurationPicker
-                            options={DURATION_OPTIONS}
+                            options={durationOptions}
                             value={field.value}
                             onChange={field.onChange}
                             disabled={isProcessing}
@@ -184,11 +187,11 @@ export function CounterOfferDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-1">
-                          Message <span className="text-muted-foreground text-xs">(optional)</span>
+                          {t("Message")} <span className="text-muted-foreground text-xs">{t("(optional)")}</span>
                         </FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Explain your counter price to the buyer…"
+                            placeholder={t("Explain your counter price to the buyer…")}
                             className="resize-none"
                             rows={2}
                             maxLength={500}
@@ -205,9 +208,9 @@ export function CounterOfferDialog({
 
                   <Button type="submit" className="w-full h-11" disabled={isProcessing}>
                     <ArrowLeftRight className="h-4 w-4 mr-2" />
-                    Send counter-offer
+                    {t("Send counter-offer")}
                   </Button>
-                  <DialogNote>This offer will be recorded onchain.</DialogNote>
+                  <DialogNote>{t("This offer will be recorded onchain.")}</DialogNote>
                 </form>
               </Form>
             </div>

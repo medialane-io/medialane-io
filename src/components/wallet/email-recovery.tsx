@@ -11,6 +11,8 @@ import { useSession } from "@medialane/ui/utils/use-session";
 import { ownerStore } from "@/lib/wallet/client";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
+import { useT } from "@medialane/ui/i18n";
+import { useFormat } from "@medialane/ui/i18n";
 
 const deps = {
   createOwnerKey: () => createOwnerKey(),
@@ -42,6 +44,8 @@ export function EmailRecovery({
   onStatus: (status: WalletRecovery) => void;
   onRecovered: () => void;
 }) {
+  const intl = useFormat();
+  const t = useT();
   const { session } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,31 +77,27 @@ export function EmailRecovery({
     <div className="space-y-3">
       {mine && status.state === "ready" ? (
         <>
-          <p className="text-sm text-muted-foreground">Your recovery is ready.</p>
+          <p className="text-sm text-muted-foreground">{t("Your recovery is ready.")}</p>
           <Button onClick={finish} disabled={busy} className="w-full">
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Open my account
+            {t("Open my account")}
           </Button>
         </>
       ) : mine ? (
-        <p className="text-sm text-muted-foreground">
-          Recovery started. Your account opens here on {new Date((status.readyAt ?? 0) * 1000).toLocaleString()}. Sign in
-          again then to finish.
-        </p>
+        <p className="text-sm text-muted-foreground">{t.rich("Recovery started. Your account opens here on {value}. Sign in again then to finish.", { value: intl.dateTime(new Date((status.readyAt ?? 0) * 1000)) })}</p>
       ) : (
         <>
           {status.state !== "none" ? (
             <p className="text-sm text-muted-foreground">
-              A recovery is already waiting for this account. Starting again here replaces it, and the wait begins
-              again.
+              {t("A recovery is already waiting for this account. Starting again here replaces it, and the wait begins again.")}
             </p>
           ) : null}
           <Button onClick={start} disabled={busy} className="w-full">
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Recover with my email
+            {t("Recover with my email")}
           </Button>
           <p className="text-xs text-muted-foreground">
-            Your account opens here after a short safety wait, and we email you when it starts.
+            {t("Your account opens here after a short safety wait, and we email you when it starts.")}
           </p>
         </>
       )}

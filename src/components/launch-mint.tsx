@@ -22,13 +22,15 @@ import { Button } from "@medialane/ui/button";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 import { useGenesisMint } from "@/hooks/use-genesis-mint";
+import { useT, msg } from "@medialane/ui/i18n";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
+  const t = useT();
   return (
     <div className="relative w-96 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
       <Image
         src="/genesis.jpg"
-        alt="Medialane Genesis NFT"
+        alt={t("Medialane Genesis NFT")}
         width={400}
         height={400}
         className="w-full aspect-square object-cover"
@@ -37,7 +39,7 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
       {minted && (
         <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 border border-emerald-500/40">
           <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-          <span className="text-2xs font-semibold text-emerald-400">Minted</span>
+          <span className="text-2xs font-semibold text-emerald-400">{t("Minted")}</span>
         </div>
       )}
     </div>
@@ -45,10 +47,10 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
 }
 
 const PERKS = [
-  { icon: Gift, label: "Free to mint", sub: "Zero protocol fees" },
-  { icon: Zap, label: "Self-custody", sub: "Secured by your passkey" },
-  { icon: Droplets, label: "Airdrop passport", sub: "Future distribution" },
-  { icon: Shield, label: "Programmable IP", sub: "Immutable ownership" },
+  { icon: Gift, label: msg("Free to mint"), sub: "Zero protocol fees" },
+  { icon: Zap, label: msg("Self-custody"), sub: "Secured by your passkey" },
+  { icon: Droplets, label: msg("Airdrop passport"), sub: "Future distribution" },
+  { icon: Shield, label: msg("Programmable IP"), sub: "Immutable ownership" },
 ];
 
 function PerksGrid() {
@@ -80,6 +82,7 @@ const MESSAGES = {
 };
 
 export function LaunchMint() {
+  const t = useT();
   const { hasWallet, address: recipientAddress, isDeployed } = useWalletNativeSession();
   const { step, error, statusMsg, txHash, tokenId, phase, start, retry, mintAnother } = useGenesisMint({
     address: recipientAddress ?? null,
@@ -113,13 +116,13 @@ export function LaunchMint() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
-                    Secure your{" "}
+                    {t("Secure your")}{" "}
                     <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                      Medialane account
+                      {t("Medialane account")}
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    One quick step before minting: secure your self-custody account with a passkey.
+                    {t("One quick step before minting: secure your self-custody account with a passkey.")}
                   </p>
                 </div>
 
@@ -138,9 +141,9 @@ export function LaunchMint() {
                   <div className="space-y-3">
 
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
-                      Claim your{" "}
+                      {t("Claim your")}{" "}
                       <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        NFT
+                        {t("NFT")}
                       </span>
                     </h1>
                   </div>
@@ -162,11 +165,11 @@ export function LaunchMint() {
                         disabled={!MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {MINT_CONTRACT ? "Claim Genesis NFT — Free" : "Mint opening soon"}
+                        {MINT_CONTRACT ? t("Claim Genesis NFT — Free") : t("Mint opening soon")}
                         <ArrowRight className="h-4 w-4 ml-auto" />
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
-                        Limited edition · Mainnet Launch
+                        {t("Limited edition · Mainnet Launch")}
                       </p>
                     </div>
                   </>
@@ -179,17 +182,17 @@ export function LaunchMint() {
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold">Minting your Genesis NFT…</p>
+                        <p className="font-semibold">{t("Minting your Genesis NFT…")}</p>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {statusMsg || "Please wait…"}
+                          {statusMsg || t("Please wait…")}
                         </p>
                       </div>
                     </div>
                     <div className="mt-4 space-y-1.5">
                       {[
-                        { label: "Upload metadata", done: phase !== "idle" },
-                        { label: "Submit transaction", done: phase === "confirming" || phase === "success" },
-                        { label: "Confirm onchain", done: phase === "success" },
+                        { label: t("Upload metadata"), done: phase !== "idle" },
+                        { label: t("Submit transaction"), done: phase === "confirming" || phase === "success" },
+                        { label: t("Confirm onchain"), done: phase === "success" },
                       ].map(({ label, done }) => (
                         <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                           {done ? (
@@ -209,9 +212,9 @@ export function LaunchMint() {
                     <div className="space-y-3">
 
                       <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
-                        You&apos;re{" "}
+                        {t("You're")}{" "}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                          in!
+                          {t("in!")}
                         </span>
                       </h1>
                     </div>
@@ -222,9 +225,9 @@ export function LaunchMint() {
                           <CheckCircle2 className="h-6 w-6 text-emerald-400" />
                         </div>
                         <div>
-                          <p className="font-bold text-emerald-300 text-lg">NFT claimed!</p>
+                          <p className="font-bold text-emerald-300 text-lg">{t("NFT claimed!")}</p>
                           <p className="text-sm text-muted-foreground">
-                            You&apos;re part of the Medialane genesis community.
+                            {t("You're part of the Medialane genesis community.")}
                           </p>
                         </div>
                       </div>
@@ -232,11 +235,11 @@ export function LaunchMint() {
                       <div className="grid grid-cols-1 gap-2 text-sm">
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
                           <Droplets className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Airdrop passport</span>
+                          <span>{t("Airdrop passport")}</span>
                         </div>
                         <div className="flex items-center gap-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 px-3 py-2">
                           <Shield className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                          <span>Immutable ownership</span>
+                          <span>{t("Immutable ownership")}</span>
                         </div>
                       </div>
 
@@ -270,7 +273,7 @@ export function LaunchMint() {
                       className="text-xs text-muted-foreground underline underline-offset-2"
                       onClick={mintAnother}
                     >
-                      Didn&apos;t receive your NFT? Try again
+                      {t("Didn't receive your NFT? Try again")}
                     </button>
                   </div>
                 )}
@@ -281,7 +284,7 @@ export function LaunchMint() {
                       <div className="flex items-start gap-3">
                         <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-sm">Mint failed</p>
+                          <p className="font-semibold text-sm">{t("Mint failed")}</p>
                           {error && (
                             <p className="text-xs text-muted-foreground mt-1">
                               {error}
@@ -291,7 +294,7 @@ export function LaunchMint() {
                       </div>
                       <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
                         <RefreshCw className="h-3.5 w-3.5" />
-                        Try again
+                        {t("Try again")}
                       </Button>
                     </div>
                     <PerksGrid />

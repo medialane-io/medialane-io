@@ -5,6 +5,7 @@ import { Skeleton } from "@medialane/ui/skeleton";
 import { cn } from "@medialane/ui";
 import type { RowTone } from "@/lib/settings/rows";
 import { accountStatus, type StatusInput } from "@/lib/settings/status";
+import { useT } from "@medialane/ui/i18n";
 
 const TEXT: Record<RowTone, string> = {
   ok: "text-emerald-600 dark:text-emerald-400",
@@ -19,6 +20,7 @@ const DOT: Record<RowTone, string> = {
 };
 
 export function AccountStatus(props: StatusInput) {
+  const t = useT();
   const { headline, lines } = accountStatus(props);
 
   const headlineBody = headline ? (
@@ -33,7 +35,7 @@ export function AccountStatus(props: StatusInput) {
   return (
     <div className="space-y-4 rounded-2xl border border-border/60 bg-card p-5">
       <div>
-        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">Account status</p>
+        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Account status")}</p>
         <div className="mt-2">
           {headline?.href ? (
             <Link href={headline.href} className="hover:underline">

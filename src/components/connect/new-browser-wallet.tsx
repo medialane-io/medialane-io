@@ -8,6 +8,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { EmailRecovery } from "@/components/wallet/email-recovery";
 import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
 import { SupportForm } from "./support-form";
+import { useT } from "@medialane/ui/i18n";
 
 const OPTION_CLASS = "h-auto w-full whitespace-normal py-3";
 
@@ -54,6 +55,7 @@ export function NewBrowserWallet({
   onStartNew: () => void;
   onUseAnotherEmail: () => void;
 }) {
+  const t = useT();
   const [status, setStatus] = useState<WalletRecovery | null | undefined>(undefined);
   const [view, setView] = useState<View>("options");
 
@@ -63,14 +65,14 @@ export function NewBrowserWallet({
 
   const back = () => setView("options");
   const anotherEmail = (
-    <OptionButton title="Use a different email" description="Sign in with another address." onClick={onUseAnotherEmail} />
+    <OptionButton title={t("Use a different email")} description={t("Sign in with another address.")} onClick={onUseAnotherEmail} />
   );
 
   if (status === undefined) {
     return (
       <div className="flex w-full items-center gap-2 py-2.5 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Checking your account
+        {t("Checking your account")}
       </div>
     );
   }
@@ -80,9 +82,9 @@ export function NewBrowserWallet({
   if (status?.enabled) {
     return (
       <div className="w-full space-y-4">
-        <p className="text-sm text-muted-foreground">Finish your account setup and secure this device</p>
+        <p className="text-sm text-muted-foreground">{t("Finish your account setup and secure this device")}</p>
         <EmailRecovery status={status} onStatus={setStatus} onRecovered={onRecovered} />
-        <OptionButton title="Contact support" description="General help." onClick={() => setView("support")} />
+        <OptionButton title={t("Contact support")} description={t("General help.")} onClick={() => setView("support")} />
         {anotherEmail}
       </div>
     );
@@ -93,7 +95,7 @@ export function NewBrowserWallet({
       <div className="w-full space-y-4">
         <RecoveryKeyRestore onRestored={onRecovered} />
         <Button variant="ghost" className="w-full" onClick={back}>
-          Back
+          {t("Back")}
         </Button>
       </div>
     );
@@ -103,17 +105,16 @@ export function NewBrowserWallet({
     return (
       <div className="w-full space-y-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium">Start a new wallet?</p>
+          <p className="text-sm font-medium">{t("Start a new wallet?")}</p>
           <p className="text-sm text-muted-foreground">
-            This account gets a fresh wallet. The current wallet&apos;s contents won&apos;t show up in the new one
-            automatically.
+            {t("This account gets a fresh wallet. The current wallet's contents won't show up in the new one automatically.")}
           </p>
         </div>
         <Button variant="outline" className={OPTION_CLASS} onClick={onStartNew}>
-          Start a new wallet
+          {t("Start a new wallet")}
         </Button>
         <Button variant="ghost" className="w-full" onClick={back}>
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     );
@@ -121,21 +122,21 @@ export function NewBrowserWallet({
 
   return (
     <div className="w-full space-y-4">
-      <p className="text-sm text-muted-foreground">The account is ready. This device needs the recovery key to open it.</p>
+      <p className="text-sm text-muted-foreground">{t("The account is ready. This device needs the recovery key to open it.")}</p>
       <div className="space-y-2.5">
         <OptionButton
           primary
-          title="Use the recovery key"
-          description="Paste the key to restore the account and everything in it."
+          title={t("Use the recovery key")}
+          description={t("Paste the key to restore the account and everything in it.")}
           onClick={() => setView("key")}
         />
         <OptionButton
-          title="Start a new wallet"
-          description="Creates a fresh wallet for this account."
+          title={t("Start a new wallet")}
+          description={t("Creates a fresh wallet for this account.")}
           onClick={() => setView("new-wallet")}
         />
         {anotherEmail}
-        <OptionButton title="Contact support" description="General help." onClick={() => setView("support")} />
+        <OptionButton title={t("Contact support")} description={t("General help.")} onClick={() => setView("support")} />
       </div>
     </div>
   );

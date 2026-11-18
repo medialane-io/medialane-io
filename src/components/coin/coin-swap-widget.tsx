@@ -9,6 +9,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useErc20Balance, useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
 import { getMedialaneClient } from "@/lib/medialane-client";
+import { useT } from "@medialane/ui/i18n";
 
 interface CoinSwapWidgetProps {
   coinAddress: string;
@@ -25,6 +26,7 @@ export function CoinSwapWidget({
   coinDecimals,
   quoteSymbol,
 }: CoinSwapWidgetProps) {
+  const t = useT();
   const quoteDecimals = getTokenBySymbol(quoteSymbol)?.decimals ?? 18;
   const { hasWallet, address } = useWalletNativeSession();
   const [side, setSide] = useState<Side>("buy");
@@ -86,12 +88,12 @@ export function CoinSwapWidget({
     return (
       <div className="rounded-2xl border border-border/60 bg-card/70 p-5 text-center space-y-3">
         <Wallet className="h-8 w-8 mx-auto text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Secure your account to trade {coinSymbol}.</p>
+        <p className="text-sm text-muted-foreground">{t("Secure your account to trade {coinSymbol}.", { coinSymbol })}</p>
         <Link
           href="/onboarding"
           className="inline-flex items-center justify-center rounded-full bg-brand-blue px-4 py-2 text-sm font-semibold text-white hover:brightness-110"
         >
-          Secure your account
+          {t("Secure your account")}
         </Link>
       </div>
     );
@@ -116,13 +118,12 @@ export function CoinSwapWidget({
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span>You pay</span>
+          <span>{t("You pay")}</span>
           {payBalance != null && (
             <button
               className="hover:text-foreground"
               onClick={() => setAmount(formatAmount(payBalance.toString(), payDecimals))}
-            >
-              Balance: {formatAmount(payBalance.toString(), payDecimals)} {paySymbol}
+            >{t("Balance: {formatAmount} {paySymbol}", { formatAmount: formatAmount(payBalance.toString(), payDecimals), paySymbol })}
             </button>
           )}
         </div>
@@ -136,11 +137,11 @@ export function CoinSwapWidget({
           />
           <span className="shrink-0 text-sm font-semibold text-muted-foreground">{paySymbol}</span>
         </div>
-        {overBalance && <p className="px-1 text-xs text-destructive">Insufficient {paySymbol} balance.</p>}
+        {overBalance && <p className="px-1 text-xs text-destructive">{t("Insufficient {paySymbol} balance.", { paySymbol })}</p>}
       </div>
 
       <div className="space-y-1.5">
-        <p className="px-1 text-xs text-muted-foreground">You receive</p>
+        <p className="px-1 text-xs text-muted-foreground">{t("You receive")}</p>
         <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-3 py-2.5">
           <span className="min-w-0 flex-1 text-lg font-semibold tabular-nums text-muted-foreground">
             {quoting ? "…" : receiveAmount ?? "0.0"}
@@ -152,7 +153,7 @@ export function CoinSwapWidget({
       {action.error && <p className="px-1 text-xs text-destructive">{action.error}</p>}
       {action.phase === "success" && (
         <p className="px-1 text-xs text-emerald-500">
-          {side === "buy" ? "Bought" : "Sold"} {coinSymbol}. Balances update in a few seconds.
+          {side === "buy" ? "Bought" : "Sold"} {coinSymbol}{t(". Balances update in a few seconds.")}
         </p>
       )}
 
@@ -163,10 +164,10 @@ export function CoinSwapWidget({
       >
         {busy ? (
           <span className="flex items-center justify-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" /> Confirming…
+            <Loader2 className="h-4 w-4 animate-spin" /> {t("Confirming…")}
           </span>
         ) : action.phase === "success" ? (
-          "Trade again"
+          t("Trade again")
         ) : (
           `${side === "buy" ? "Buy" : "Sell"} ${coinSymbol}`
         )}

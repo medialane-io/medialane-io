@@ -6,6 +6,7 @@ import { APP_URL, defaultRobots } from "@/lib/seo";
 
 import "@medialane/ui/styles";
 import "./globals.css";
+import { msg } from "@medialane/ui/i18n";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | Medialane",
   },
   description:
-    "Launch, collect, and monetize your creative works with a passkey.",
+    msg("Launch, collect, and monetize your creative works with a passkey."),
   keywords: ["NFT", "IP", "Launchpad", "Starknet", "Creator", "Marketplace"],
   authors: [{ name: "Medialane" }],
   icons: {
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     title: "Medialane",
-    description: "Creator launchpad & IP marketplace on Starknet",
+    description: msg("Creator launchpad & IP marketplace on Starknet"),
     siteName: "Medialane",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Medialane" }],
   },

@@ -8,6 +8,7 @@ import { Button } from "@medialane/ui/button";
 import type { DeploymentStep } from "@medialane/sdk/starknet";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { mediaWallet } from "@/lib/wallet/client";
+import { useT } from "@medialane/ui/i18n";
 
 const STEP_LABEL: Record<DeploymentStep, string> = {
   "creating-passkey": "Creating passkey…",
@@ -23,6 +24,7 @@ interface ReplaceWalletDialogProps {
 }
 
 export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogProps) {
+  const t = useT();
   const { session } = useSession();
   const [step, setStep] = useState<DeploymentStep | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,8 +63,8 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
         onEscapeKeyDown={step ? (e) => e.preventDefault() : undefined}
         {...(step ? { hideClose: true } : {})}
       >
-        <DialogTitle className="sr-only">Generate New Wallet</DialogTitle>
-        <DialogDescription className="sr-only">{newAddress ? "Account secured with a new contract onchain" : WARNING}</DialogDescription>
+        <DialogTitle className="sr-only">{t("Generate New Wallet")}</DialogTitle>
+        <DialogDescription className="sr-only">{newAddress ? t("Account secured with a new contract onchain") : WARNING}</DialogDescription>
 
         {newAddress ? (
           <div className="flex flex-col items-center gap-5 p-6 py-8">
@@ -70,12 +72,12 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
               <CheckCircle2 className="h-9 w-9 text-emerald-500" />
             </div>
             <div className="space-y-1 text-center">
-              <p className="text-xl font-bold">New wallet active</p>
-              <p className="text-sm text-muted-foreground">Account secured with a new contract onchain</p>
+              <p className="text-xl font-bold">{t("New wallet active")}</p>
+              <p className="text-sm text-muted-foreground">{t("Account secured with a new contract onchain")}</p>
             </div>
             <AddressDisplay address={newAddress} chars={33} showCopy className="break-all text-xs" />
             <Button className="w-full h-11" onClick={close}>
-              Done
+              {t("Done")}
             </Button>
           </div>
         ) : step ? (
@@ -86,14 +88,14 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
                 <RefreshCw className="h-8 w-8 text-destructive" />
               </div>
-              <p className="text-xl font-bold">Generate New Wallet</p>
+              <p className="text-xl font-bold">{t("Generate New Wallet")}</p>
             </div>
             <MarketplaceConfirmStep
               description={WARNING}
               error={error}
-              secondaryLabel="Cancel"
+              secondaryLabel={t("Cancel")}
               onSecondary={close}
-              primaryLabel="Generate new wallet"
+              primaryLabel={t("Generate new wallet")}
               primaryVariant="destructive"
               onPrimary={generate}
             />

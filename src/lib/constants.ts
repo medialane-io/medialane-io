@@ -1,4 +1,5 @@
 import { readStringEnv } from "./env";
+import { msg } from "@medialane/ui/i18n";
 
 export {
   SUPPORTED_TOKENS,
@@ -38,10 +39,10 @@ export const EXPLORER_URL =
   readStringEnv(process.env.NEXT_PUBLIC_EXPLORER_URL, "https://voyager.online");
 
 export const DURATION_OPTIONS = [
-  { label: "1 Day", seconds: 86400 },
-  { label: "7 Days", seconds: 604800 },
-  { label: "30 Days", seconds: 2592000 },
-  { label: "6 Months", seconds: 15552000 },
-  { label: "1 Year", seconds: 31536000 },
-  { label: "2 Years", seconds: 63072000 },
+  { label: msg("1 Day"), seconds: 86400 },
+  { label: msg("7 Days"), seconds: 604800 },
+  { label: msg("30 Days"), seconds: 2592000 },
+  { label: msg("6 Months"), seconds: 15552000 },
+  { label: msg("1 Year"), seconds: 31536000 },
+  { label: msg("2 Years"), seconds: 63072000 },
 ] as const;

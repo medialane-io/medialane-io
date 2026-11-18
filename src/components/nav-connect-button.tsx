@@ -5,8 +5,10 @@ import { useNavCommandMenu } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useMediaWallet } from "@medialane/ui";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
+import { useT } from "@medialane/ui/i18n";
 
 export function NavConnectButton() {
+  const t = useT();
   const { hasWallet } = useWalletNativeSession();
   const { close: closeMenu } = useNavCommandMenu();
   const { open: openWalletPanel } = useMediaWallet();
@@ -21,7 +23,7 @@ export function NavConnectButton() {
             className="flex items-center gap-1.5 rounded-[7px] bg-transparent px-2.5 py-1 text-2xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
           >
             <UserShieldIcon className="h-3 w-3" />
-            Connect
+            {t("Connect")}
           </Link>
         </div>
         <Kbd />
@@ -41,7 +43,7 @@ export function NavConnectButton() {
         style={{ backgroundColor: "hsl(var(--brand-blue))" }}
       >
         <UserShieldIcon className="h-3 w-3 text-white" />
-        Connect
+        {t("Connect")}
       </button>
       <Kbd />
     </span>

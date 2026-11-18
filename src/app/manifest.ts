@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { msg } from "@medialane/ui/i18n";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Medialane",
     short_name: "Medialane",
-    description: "Creator launchpad and IP marketplace on Starknet.",
+    description: msg("Creator launchpad and IP marketplace on Starknet."),
     start_url: "/",
     scope: "/",
     display: "standalone",

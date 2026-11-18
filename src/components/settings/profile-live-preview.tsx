@@ -8,6 +8,7 @@ import { CreatorScoreInline, profileIdentity } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
 import type { ProfileForm } from "./types";
 import { profileHref } from "@/lib/routes";
+import { useT } from "@medialane/ui/i18n";
 
 export function ProfileLivePreview({
   form, approvedUsername, walletAddress, fallbackImage,
@@ -18,6 +19,7 @@ export function ProfileLivePreview({
 
   fallbackImage?: string | null;
 }) {
+  const t = useT();
   const { identity, name } = profileIdentity({
     username: approvedUsername,
     name: form.name,
@@ -45,7 +47,7 @@ export function ProfileLivePreview({
           {name ? (
             <p className="truncate text-2xs text-muted-foreground">{name}</p>
           ) : (
-            <p className="text-2xs text-muted-foreground/60">Add a name</p>
+            <p className="text-2xs text-muted-foreground/60">{t("Add a name")}</p>
           )}
         </div>
 
@@ -83,7 +85,7 @@ export function ProfileLivePreview({
             href={profileHref({ username: approvedUsername })}
             className="inline-flex items-center gap-1 text-2xs font-medium text-primary hover:underline"
           >
-            View profile
+            {t("View profile")}
             <ArrowUpRight className="h-3 w-3" />
           </Link>
         )}

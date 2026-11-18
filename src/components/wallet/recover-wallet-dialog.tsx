@@ -13,6 +13,7 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { isOwnerOf } from "@/lib/wallet/devices";
 import { sealImportedOwnerKey } from "@/lib/wallet/passkey";
 import { notifyWalletChange, saveSealedOwner } from "@/lib/wallet/store";
+import { useT } from "@medialane/ui/i18n";
 
 type Step = "creating-passkey" | "securing";
 
@@ -30,6 +31,7 @@ interface RecoverWalletDialogProps {
 }
 
 export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogProps) {
+  const t = useT();
   const { session } = useSession();
   const [keyInput, setKeyInput] = useState("");
   const [step, setStep] = useState<Step | null>(null);
@@ -96,9 +98,9 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
         onEscapeKeyDown={step ? (e) => e.preventDefault() : undefined}
         {...(step ? { hideClose: true } : {})}
       >
-        <DialogTitle className="sr-only">Recover with your key</DialogTitle>
+        <DialogTitle className="sr-only">{t("Recover with your key")}</DialogTitle>
         <DialogDescription className="sr-only">
-          {recoveredAddress ? "Account secured with the recovered wallet" : WARNING}
+          {recoveredAddress ? t("Account secured with the recovered wallet") : WARNING}
         </DialogDescription>
 
         {recoveredAddress ? (
@@ -107,12 +109,12 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
               <CheckCircle2 className="h-9 w-9 text-emerald-500" />
             </div>
             <div className="space-y-1 text-center">
-              <p className="text-xl font-bold">Wallet recovered</p>
-              <p className="text-sm text-muted-foreground">Account secured with the recovered wallet</p>
+              <p className="text-xl font-bold">{t("Wallet recovered")}</p>
+              <p className="text-sm text-muted-foreground">{t("Account secured with the recovered wallet")}</p>
             </div>
             <AddressDisplay address={recoveredAddress} chars={33} showCopy className="break-all text-xs" />
             <Button className="w-full h-11" onClick={close}>
-              Done
+              {t("Done")}
             </Button>
           </div>
         ) : step ? (
@@ -123,7 +125,7 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-violet-500/10">
                 <KeyRound className="h-8 w-8 text-violet-600 dark:text-violet-400" />
               </div>
-              <p className="text-xl font-bold">Recover with your key</p>
+              <p className="text-xl font-bold">{t("Recover with your key")}</p>
             </div>
             <MarketplaceConfirmStep
               summary={
@@ -131,10 +133,10 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
                   <Input
                     value={keyInput}
                     onChange={(e) => setKeyInput(e.target.value)}
-                    placeholder="medialane-recovery:v1:…"
+                    placeholder={t("medialane-recovery:v1:…")}
                     autoComplete="off"
                     spellCheck={false}
-                    aria-label="Recovery key"
+                    aria-label={t("Recovery key")}
                     className="font-mono text-xs"
                   />
                   {preview ? (
@@ -144,9 +146,9 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
               }
               description={WARNING}
               error={error}
-              secondaryLabel="Cancel"
+              secondaryLabel={t("Cancel")}
               onSecondary={close}
-              primaryLabel="Recover wallet"
+              primaryLabel={t("Recover wallet")}
               primaryDisabled={!preview}
               onPrimary={recover}
             />
