@@ -38,8 +38,8 @@ describe("the replace wallet dialog", () => {
       onStep("creating-passkey");
       return new Promise(() => {});
     };
-    const { getByText } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
-    fireEvent.click(getByText("Generate new wallet"));
+    const { getByText, getByRole } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
+    fireEvent.click(getByRole("button", { name: "Generate new wallet" }));
     await waitFor(() => expect(getByText("Creating passkey…")).toBeTruthy());
     expect(calls).toEqual([{ replace: true }]);
   });
@@ -50,8 +50,8 @@ describe("the replace wallet dialog", () => {
     const reloads: number[] = [];
     const original = window.location;
     Object.defineProperty(window, "location", { configurable: true, value: { ...original, reload: () => reloads.push(1) } });
-    const { getByText, getAllByText } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
-    fireEvent.click(getByText("Generate new wallet"));
+    const { getByText, getAllByText, getByRole } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
+    fireEvent.click(getByRole("button", { name: "Generate new wallet" }));
     await waitFor(() => expect(getByText("New wallet active")).toBeTruthy());
     expect(getAllByText("Account secured with a new contract onchain").length).toBeGreaterThan(0);
     expect(reloads).toEqual([]);
@@ -64,16 +64,16 @@ describe("the replace wallet dialog", () => {
     deploy = async () => {
       throw new Error("Deploy refused");
     };
-    const { getByText, getByRole } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
-    fireEvent.click(getByText("Generate new wallet"));
+    const { getByRole } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
+    fireEvent.click(getByRole("button", { name: "Generate new wallet" }));
     await waitFor(() => expect(getByRole("alert")).toBeTruthy());
-    expect(getByText("Generate new wallet")).toBeTruthy();
+    expect(getByRole("button", { name: "Generate new wallet" })).toBeTruthy();
   });
 
   test("without a session it asks to sign in and starts nothing", async () => {
     session = null;
-    const { getByText } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
-    fireEvent.click(getByText("Generate new wallet"));
+    const { getByText, getByRole } = render(<ReplaceWalletDialog open onOpenChange={() => {}} />);
+    fireEvent.click(getByRole("button", { name: "Generate new wallet" }));
     await waitFor(() => expect(getByText("Sign in to generate a wallet.")).toBeTruthy());
     expect(calls).toEqual([]);
   });

@@ -77,7 +77,7 @@ export default function WalletSettingsPage() {
             icon={RefreshCw}
             iconColor="text-destructive"
             iconBg="bg-destructive/10"
-            title={t("Generate New Wallet")}
+            title={t("Generate new wallet")}
             description={t("This replaces the active wallet on this account. Assets in the current wallet can be moved first.")}
           >
             <Button onClick={() => setReplaceOpen(true)} variant="destructive" size="sm">

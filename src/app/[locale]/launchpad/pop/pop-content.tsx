@@ -104,7 +104,7 @@ const POP_FEATURES = [
   },
   {
     icon: Zap,
-    title: msg("Free to Claim"),
+    title: msg("Free to claim"),
     desc: "No protocol fee — participants claim one credential per event.",
   },
   {

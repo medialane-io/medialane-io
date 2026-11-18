@@ -6,7 +6,7 @@ import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = msg("Claim a Collection");
+const title = msg("Claim a collection");
 const description = msg("Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.");
 
 export const generateMetadata = pageMetadata({

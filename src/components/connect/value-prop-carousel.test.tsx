@@ -20,7 +20,7 @@ const LABELS = [
   "Censorship resistant",
   "Sponsored transactions",
   "Remix",
-  "Limited editions",
+  "Limited Editions",
   "Creator's Fund",
   "Asset provenance",
   "Creator Launchpad",
