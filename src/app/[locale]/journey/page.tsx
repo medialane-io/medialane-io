@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { JourneyContent } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Your Journey";
-const description = "Every level, every badge, every way to earn XP on Medialane — the whole system, explained.";
+const title = msg("Your Journey");
+const description = msg("Every level, every badge, every way to earn XP on Medialane — the whole system, explained.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/journey",
   title,
   description,
-  alternates: canonical("/journey"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function JourneyPage() {
   return (

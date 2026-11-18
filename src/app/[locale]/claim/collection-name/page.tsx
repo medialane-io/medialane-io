@@ -1,21 +1,19 @@
-import type { Metadata } from "next";
 import { Link2 } from "lucide-react";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { CollectionNameClaim } from "@medialane/ui";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = "Claim a Collection Name";
-const description =
-  "Give your collection a clean, memorable web address — medialane.io/collection/your-name — instead of a long contract address.";
+const title = msg("Claim a Collection Name");
+const description = msg("Give your collection a clean, memorable web address — medialane.io/collection/your-name — instead of a long contract address.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/claim/collection-name",
   title,
   description,
-  alternates: canonical("/claim/collection-name"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function ClaimCollectionNamePage() {
   return (

@@ -1,21 +1,19 @@
-import type { Metadata } from "next";
 import { AtSign } from "lucide-react";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { UsernameClaimSection } from "@/components/settings/username-claim-section";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = "Claim your Username";
-const description =
-  "Reserve your unique creator username and get a shareable creator page at medialane.io/creator/yourname.";
+const title = msg("Claim your Username");
+const description = msg("Reserve your unique creator username and get a shareable creator page at medialane.io/creator/yourname.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/claim/username",
   title,
   description,
-  alternates: canonical("/claim/username"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function ClaimUsernamePage() {
   return (

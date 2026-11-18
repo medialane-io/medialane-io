@@ -1,20 +1,20 @@
-import type { Metadata } from "next";
 import { Coins } from "lucide-react";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
 import { PageAside } from "@/components/claim/page-aside";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Claim Memecoin";
-const description = "Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.";
+const title = msg("Claim Memecoin");
+const description = msg("Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/claim/memecoin",
   title,
   description,
-  alternates: canonical("/claim/memecoin"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Claim a Memecoin on Medialane" }),
-};
+  imageAlt: msg("Claim a Memecoin on Medialane"),
+});
 
 export default function MemecoinClaimPage() {
   return (

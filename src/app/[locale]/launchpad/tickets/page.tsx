@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { ServiceCollectionsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "IP Tickets";
-const description = "Create verifiable on-chain tickets — mint to your audience, trade like any collection.";
+const title = msg("IP Tickets");
+const description = msg("Create verifiable on-chain tickets — mint to your audience, trade like any collection.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/tickets",
   title,
   description,
-  alternates: canonical("/launchpad/tickets"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function TicketsPage() {
   return <ServiceCollectionsPage kind="tickets" />;

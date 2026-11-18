@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import { CollectionsPage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Collections";
-const description = "Browse all onchain IP collections on Medialane — NFT, art, audio, video, and more on Starknet.";
+const title = msg("Collections");
+const description = msg("Browse all onchain IP collections on Medialane — NFT, art, audio, video, and more on Starknet.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/collections",
   title,
   description,
-  alternates: canonical("/collections"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Medialane Collections" }),
-};
+  imageAlt: msg("Medialane Collections"),
+});
 
 export default function CollectionsRoute() {
   return <CollectionsPage />;

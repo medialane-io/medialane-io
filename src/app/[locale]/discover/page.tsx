@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import { DiscoverPage } from "@/components/discover";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Discover";
-const description = "Explore trending digital assets, collections, and creators on Medialane — Creator Launchpad + NFT Marketplace.";
+const title = msg("Discover");
+const description = msg("Explore trending digital assets, collections, and creators on Medialane — Creator Launchpad + NFT Marketplace.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/discover",
   title,
   description,
-  alternates: canonical("/discover"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Discover on Medialane" }),
-};
+  imageAlt: msg("Discover on Medialane"),
+});
 
 export default function DiscoverPreviewPage() {
   return <DiscoverPage />;

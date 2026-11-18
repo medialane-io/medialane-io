@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "@medialane/ui/link";
 import {
   Sparkles,
@@ -10,17 +9,17 @@ import {
   Star,
 } from "lucide-react";
 import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Creator's Airdrop";
-const description = "How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.";
+const title = msg("Creator's Airdrop");
+const description = msg("How the Medialane Creator's Airdrop works: what earns XP, how distributions happen, and how to join.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/airdrop",
   title,
   description,
-  alternates: canonical("/airdrop"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 const EARN_GROUPS = [
   {

@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
 import { CoinsMount } from "./coins-mount";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Coins";
-const description = "Discover creator coins and memecoins.";
+const title = msg("Coins");
+const description = msg("Discover creator coins and memecoins.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/coins",
   title,
   description,
-  alternates: canonical("/coins"),
-  ...buildSocialMetadata({ title, description, imageAlt: "Coins" }),
-};
+  imageAlt: msg("Coins"),
+});
 
 export default function CoinsPage() {
   return (

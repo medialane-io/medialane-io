@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { PopContent } from "./pop-content";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Proof of Participation";
-const description = "Claim your on-chain credential for events, bootcamps, and workshops.";
+const title = msg("Proof of Participation");
+const description = msg("Claim your on-chain credential for events, bootcamps, and workshops.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/pop",
   title,
   description,
-  alternates: canonical("/launchpad/pop"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function PopPage() {
   return <PopContent />;

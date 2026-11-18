@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { ActivitiesFeed, PageContainer } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Activities";
-const description = "Global marketplace activity on Medialane.";
+const title = msg("Activities");
+const description = msg("Global marketplace activity on Medialane.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/activities",
   title,
   description,
-  alternates: canonical("/activities"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function ActivitiesPage() {
   return (

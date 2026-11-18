@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
 import { RemixBrowsePage } from "@medialane/ui";
-import { canonical, buildSocialMetadata } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
-const title = "Remix | Launchpad";
-const description = "Pick a work that is open to remixing and create a licensed derivative with attribution to the original creator.";
+const title = msg("Remix | Launchpad");
+const description = msg("Pick a work that is open to remixing and create a licensed derivative with attribution to the original creator.");
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/launchpad/remix",
   title,
   description,
-  alternates: canonical("/launchpad/remix"),
-  ...buildSocialMetadata({ title, description }),
-};
+});
 
 export default function RemixPage() {
   return <RemixBrowsePage />;

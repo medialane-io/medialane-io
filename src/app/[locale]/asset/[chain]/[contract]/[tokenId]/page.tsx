@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@medialane/ui/json-ld";
 import { fetchTokenMeta, fetchCollectionMeta, ipfsToHttpServer } from "@/lib/api-server";
-import { absoluteUrl, canonical, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
+import { absoluteUrl, alternates, truncateDescription, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { chainFromSlug } from "@/lib/routes";
 import AssetPageClient from "./asset-page-client";
 
 export const revalidate = 60;
 
 interface Props {
-  params: Promise<{ chain: string; contract: string; tokenId: string }>;
+  params: Promise<{ chain: string; contract: string; tokenId: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { chain, contract, tokenId } = await params;
+  const { chain, contract, tokenId, locale } = await params;
   const token = await fetchTokenMeta(contract, tokenId);
 
   const name        = token?.metadata?.name ?? `Token #${tokenId}`;
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: name,
     description,
-    alternates: canonical(path),
+    alternates: alternates(path, locale),
     ...buildSocialMetadata({ title: name, description, imageUrl }),
   };
 }
