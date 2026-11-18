@@ -146,7 +146,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             subtitle={
               <span className="flex items-center gap-1">
                 <Zap className="h-3 w-3 text-emerald-500" />
-                <span className="text-emerald-500">{t("Digital Asset Ownership")}</span>
+                <span className="text-emerald-500">{t("Digital asset ownership")}</span>
               </span>
             }
             price={order.price}

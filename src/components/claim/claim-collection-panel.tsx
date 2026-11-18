@@ -111,7 +111,7 @@ export function ClaimCollectionPanel({
               variant="outline"
               onClick={() => { setContractAddress(""); setClaimedCollection(null); setStep("input"); }}
             >
-              {t("Claim Another")}
+              {t("Claim another")}
             </Button>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function ClaimCollectionPanel({
           >
             {step === "verifying"
               ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("Verifying…")}</>
-              : t("Verify & Claim")
+              : t("Verify & claim")
             }
           </Button>
         </div>
@@ -188,7 +188,7 @@ export function ClaimCollectionPanel({
             </div>
             {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}
             <div className="flex gap-3">
-              <Button onClick={handleManualRequest} className="flex-1">{t("Submit Request")}</Button>
+              <Button onClick={handleManualRequest} className="flex-1">{t("Submit request")}</Button>
               <Button variant="outline" onClick={() => setStep("input")}>{t("Back")}</Button>
             </div>
           </div>

@@ -33,7 +33,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
         {showImage ? (
           <Image
             src={imageUrl}
-            alt={collection.name ?? t("POP Collection")}
+            alt={collection.name ?? t("POP collection")}
             fill
             className="object-cover"
             onError={() => setImgError(true)}
@@ -51,7 +51,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex-1 space-y-1">
-          <p className="font-bold text-sm leading-tight">{collection.name ?? t("Unnamed Event")}</p>
+          <p className="font-bold text-sm leading-tight">{collection.name ?? t("Unnamed event")}</p>
           {collection.description && (
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
               {collection.description}
@@ -99,7 +99,7 @@ const POP_FEATURES = [
   },
   {
     icon: Users,
-    title: msg("One Per Address"),
+    title: msg("One per address"),
     desc: "Each participant claims exactly one credential per event.",
   },
   {
@@ -109,7 +109,7 @@ const POP_FEATURES = [
   },
   {
     icon: ShieldCheck,
-    title: msg("Verifiable On-Chain"),
+    title: msg("Verifiable onchain"),
     desc: "Credentials are permanently readable and provable onchain.",
   },
 ];
@@ -133,7 +133,7 @@ export function PopContent() {
             <ServiceHeader
               plain
               icon={<Award className="h-4 w-4 text-white" />}
-              title={t("POP Events")}
+              title={t("POP events")}
               subtitle={t("Immutable certificates for authenticity. Browse events or create one.")}
             />
           </div>
@@ -176,13 +176,13 @@ export function PopContent() {
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <Link href="/launchpad/pop/my-events">
                   <LayoutList className="h-3.5 w-3.5" />
-                  {t("My Events")}
+                  {t("My events")}
                 </Link>
               </Button>
               <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
                 <Link href="/launchpad/pop/create">
                   <Plus className="h-3.5 w-3.5" />
-                  {t("Create Event")}
+                  {t("Create event")}
                 </Link>
               </Button>
             </div>

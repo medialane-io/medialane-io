@@ -16,7 +16,7 @@ function ranked(query: string) {
 }
 
 test("searching for settings offers account settings and nothing else", () => {
-  expect(ranked("settings")).toEqual(["Account Settings"]);
+  expect(ranked("settings")).toEqual(["Account settings"]);
 });
 
 test("a coincidental letter subsequence is not a result", () => {
@@ -27,7 +27,7 @@ test("a coincidental letter subsequence is not a result", () => {
 
 test("the intended destination ranks first while the query is still being typed", () => {
   const journeys: [string[], string][] = [
-    [["set", "sett", "setti", "settings"], "Account Settings"],
+    [["set", "sett", "setti", "settings"], "Account settings"],
     [["air", "aird", "airdrop"], "Airdrop"],
     [["portf", "portfo", "portfolio"], "Portfolio"],
     [["club"], "Create IP Club"],

@@ -6,7 +6,7 @@ import { ClaimGate } from "@/components/claim/claim-gate";
 import { CollectionNameClaim } from "@medialane/ui";
 import { PageAside } from "@/components/claim/page-aside";
 
-const title = msg("Claim a Collection Name");
+const title = msg("Claim a collection name");
 const description = msg("Give your collection a clean, memorable web address — medialane.io/collection/your-name — instead of a long contract address.");
 
 export const generateMetadata = pageMetadata({
