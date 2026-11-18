@@ -104,7 +104,7 @@ export function ClaimCollectionPanel({
           )}
           <div className="flex gap-3">
             <Button asChild size="sm">
-              <Link href="/portfolio/collections">{t("View in Portfolio")}</Link>
+              <Link href="/portfolio/collections">{t("View in portfolio")}</Link>
             </Button>
             <Button
               size="sm"

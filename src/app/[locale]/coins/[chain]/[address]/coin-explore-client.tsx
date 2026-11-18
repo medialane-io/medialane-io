@@ -63,7 +63,7 @@ export function CoinExploreClient({ address }: { address: string }) {
   if (supply != null && supply > 0) stats.push({ label: t("Supply"), value: formatCompact(supply) });
   if (marketCap != null) {
     stats.push({
-      label: t("Market Cap"),
+      label: t("Market cap"),
       value: marketCapUsd != null
         ? fmtUsd(marketCapUsd)
         : `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim(),

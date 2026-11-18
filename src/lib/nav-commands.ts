@@ -29,7 +29,7 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: msg("Claim"),
     items: [
-      { id: "claim-collection", label: msg("Claim a Collection"), icon: FolderInput, href: "/claim/collection", keywords: ["claim", "import", "existing", "erc721", "collection", "external"] },
+      { id: "claim-collection", label: msg("Claim a collection"), icon: FolderInput, href: "/claim/collection", keywords: ["claim", "import", "existing", "erc721", "collection", "external"] },
       { id: "claim-username", label: msg("Claim Username"), icon: AtSign, href: "/claim/username", keywords: ["claim", "username", "creator page", "url", "reserve", "handle"] },
       { id: "claim-collection-name", label: msg("Claim a Collection Name"), icon: Link2, href: "/claim/collection-name", keywords: ["claim", "collection", "slug", "url", "name", "vanity"] },
     ],

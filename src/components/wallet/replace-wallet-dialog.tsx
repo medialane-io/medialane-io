@@ -63,7 +63,7 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
         onEscapeKeyDown={step ? (e) => e.preventDefault() : undefined}
         {...(step ? { hideClose: true } : {})}
       >
-        <DialogTitle className="sr-only">{t("Generate New Wallet")}</DialogTitle>
+        <DialogTitle className="sr-only">{t("Generate new wallet")}</DialogTitle>
         <DialogDescription className="sr-only">{newAddress ? t("Account secured with a new contract onchain") : WARNING}</DialogDescription>
 
         {newAddress ? (
@@ -88,7 +88,7 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
                 <RefreshCw className="h-8 w-8 text-destructive" />
               </div>
-              <p className="text-xl font-bold">{t("Generate New Wallet")}</p>
+              <p className="text-xl font-bold">{t("Generate new wallet")}</p>
             </div>
             <MarketplaceConfirmStep
               description={WARNING}
