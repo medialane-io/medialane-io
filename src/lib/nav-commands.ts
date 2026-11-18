@@ -1,5 +1,5 @@
 import { navGroups } from "@medialane/ui";
-import { AtSign, Coins, FolderInput, Link2 } from "lucide-react";
+import { Coins, FolderInput } from "lucide-react";
 import { msg } from "@medialane/ui/i18n";
 
 export const NAV_COMMANDS = navGroups([
@@ -11,7 +11,7 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: msg("Navigate"),
     items: [
-      "collections", "coins", "accounts", "activities", "rewards", "airdrop",
+      "collections", "coins", "rewards", "airdrop",
       { id: "claims", label: msg("Claims"), icon: FolderInput, href: "/claim", keywords: ["username", "reserve", "import", "collection name", "memecoin"] },
       "settings",
     ],
@@ -19,19 +19,11 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: msg("Create & Mint"),
     items: [
-      "mint-ip-asset", "create-collection", "mint-editions", "create-1155", "collection-drop", "browse-drops",
-      "pop-create", "pop-browse", "tickets-create", "tickets-browse", "club-create", "club-browse",
-      "sponsorship-create", "sponsorship-browse", "launch-coin",
+      "mint-ip-asset", "create-collection", "mint-editions", "create-1155",
+      "pop-create", "pop-browse", "tickets-create", "club-create",
+      "sponsorship-create", "launch-coin",
       { id: "claim-memecoin", label: msg("Claim a Memecoin"), icon: Coins, href: "/claim/memecoin", keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
       "remix",
-    ],
-  },
-  {
-    heading: msg("Claim"),
-    items: [
-      { id: "claim-collection", label: msg("Claim a collection"), icon: FolderInput, href: "/claim/collection", keywords: ["claim", "import", "existing", "erc721", "collection", "external"] },
-      { id: "claim-username", label: msg("Claim Username"), icon: AtSign, href: "/claim/username", keywords: ["claim", "username", "creator page", "url", "reserve", "handle"] },
-      { id: "claim-collection-name", label: msg("Claim a Collection Name"), icon: Link2, href: "/claim/collection-name", keywords: ["claim", "collection", "slug", "url", "name", "vanity"] },
     ],
   },
   {
@@ -50,7 +42,7 @@ export const NAV_COMMANDS = navGroups([
   {
     heading: msg("Documentation"),
     items: [
-      "docs", "docs-market", "docs-launchpad", "docs-ip", "docs-sdk", "docs-terms", "docs-privacy",
+      "docs", "docs-terms", "docs-privacy",
     ],
   },
 ]);
