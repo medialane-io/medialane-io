@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { MedialaneLogoFull as MedialaneLogo } from "@medialane/ui/brand-logo";
 import { msg, useT } from "@medialane/ui/i18n";
 

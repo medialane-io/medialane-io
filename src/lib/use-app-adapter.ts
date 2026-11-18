@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@medialane/ui/router";
 import { Wallet } from "lucide-react";
 import type { MedialaneApp } from "@medialane/ui";
 import { requireAccount, requireSignedIn } from "@/lib/account-gate";

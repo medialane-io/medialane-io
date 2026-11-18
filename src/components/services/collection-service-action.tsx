@@ -2,7 +2,7 @@
 
 import { getServiceConfig } from "@/lib/service-registry";
 import { PopClaimButton } from "@medialane/ui";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { dropHref } from "@medialane/sdk";
 import { Button } from "@medialane/ui/button";
 import { useT } from "@medialane/ui/i18n";

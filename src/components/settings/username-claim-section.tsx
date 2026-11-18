@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@medialane/ui/router";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Badge } from "@medialane/ui/badge";
 import { CopyLinkButton } from "@/components/settings/copy-link-button";

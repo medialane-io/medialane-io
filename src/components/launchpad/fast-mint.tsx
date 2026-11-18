@@ -1,7 +1,7 @@
 "use client";
 
 import { requireAccount } from "@/lib/account-gate";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@medialane/ui/router";
 import { FastMint as SharedFastMint, type FastMintProps as SharedFastMintProps, type FastMintSigner, useCollectionsByOwner, useMedialaneClient } from "@medialane/ui";
 
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";

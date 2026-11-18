@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@medialane/ui/router";
 import { ArrowLeft } from "lucide-react";
 import { useT } from "@medialane/ui/i18n";
 

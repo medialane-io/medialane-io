@@ -2,7 +2,7 @@
 
 import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor, GradientButton } from "@medialane/ui";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@medialane/ui/router";
 import { ShoppingCart, RefreshCw, Zap, Minus, Plus } from "lucide-react";
 import { useConfetti } from "@medialane/ui/utils/use-confetti";
 import { RewardEarned } from "@medialane/ui";

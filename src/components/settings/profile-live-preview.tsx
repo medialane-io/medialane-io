@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { ArrowUpRight, Globe, MessageCircle, Send, Twitter } from "lucide-react";
 import { CreatorScoreInline, profileIdentity } from "@medialane/ui";
 

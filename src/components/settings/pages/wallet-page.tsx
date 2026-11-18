@@ -1,7 +1,7 @@
 "use client";
 
 import { AddressDisplay, ExportKeySection, AccountSection, useMediaWallet } from "@medialane/ui";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { useState } from "react";
 import { ArrowUpRight, LifeBuoy, RefreshCw, Wallet } from "lucide-react";
 import { Badge } from "@medialane/ui/badge";

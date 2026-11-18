@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@medialane/ui/link";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { requireSignedIn } from "@/lib/account-gate";
