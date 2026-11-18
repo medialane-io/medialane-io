@@ -6,6 +6,7 @@ import { CurrencyIcon } from "@medialane/ui/currency-icon";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { useMediaWallet, useSwapQuote, cn } from "@medialane/ui";
 import { fmt } from "@medialane/ui/utils/media-wallet/wallet-format";
+import { useT } from "@medialane/ui/i18n";
 
 function PayWithOption({
   symbol, decimals, rawBalance, sellAmount, isLoading, insufficient, selected, onSelect,
@@ -19,6 +20,7 @@ function PayWithOption({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const t = useT();
   return (
     <button
       type="button"
@@ -33,8 +35,7 @@ function PayWithOption({
       <CurrencyIcon symbol={symbol} size={18} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{symbol}</p>
-        <p className="text-xs text-muted-foreground">
-          Balance: {fmt(rawBalance, decimals, 4)}
+        <p className="text-xs text-muted-foreground">{t("Balance: {fmt}", { fmt: fmt(rawBalance, decimals, 4) })}
         </p>
       </div>
       {isLoading ? (
@@ -44,25 +45,26 @@ function PayWithOption({
           ≈ {fmt(sellAmount, decimals, 4)} {symbol}
         </p>
       ) : insufficient ? (
-        <p className="text-xs text-amber-500 shrink-0">Insufficient</p>
+        <p className="text-xs text-amber-500 shrink-0">{t("Insufficient")}</p>
       ) : null}
     </button>
   );
 }
 
 function FundWalletPrompt({ message, onFund }: { message: string; onFund: () => void }) {
+  const t = useT();
   return (
     <div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-center">
       <p className="text-base font-semibold">{message}</p>
       <p className="text-sm text-foreground/80">
-        Add STRK, ETH, USDC, USDT, or WBTC to your Media Wallet to complete this purchase.
+        {t("Add STRK, ETH, USDC, USDT, or WBTC to your Media Wallet to complete this purchase.")}
       </p>
       <button
         type="button"
         onClick={onFund}
         className="text-sm font-semibold text-primary hover:underline"
       >
-        Fund your wallet
+        {t("Fund your wallet")}
       </button>
     </div>
   );
@@ -78,6 +80,7 @@ interface PayWithPickerProps {
 }
 
 export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selected, onSelect, onBeforeFund }: PayWithPickerProps) {
+  const t = useT();
   const { open: openWalletPanel } = useMediaWallet();
   const openWalletToReceive = () => {
     onBeforeFund?.();
@@ -126,20 +129,20 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
     return (
       <div className="flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-4 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Checking your balances…
+        {t("Checking your balances…")}
       </div>
     );
   }
 
   if (held.length === 0) {
-    return <FundWalletPrompt message="Add funds to complete this purchase" onFund={openWalletToReceive} />;
+    return <FundWalletPrompt message={t("Add funds to complete this purchase")} onFund={openWalletToReceive} />;
   }
 
   if (anyStillQuoting) {
     return (
       <div className="flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-4 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Checking exchange rates…
+        {t("Checking exchange rates…")}
       </div>
     );
   }
@@ -147,7 +150,7 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
   if (!anySufficient) {
     return (
       <FundWalletPrompt
-        message="You don't have enough of any supported token to complete this purchase"
+        message={t("You don't have enough of any supported token to complete this purchase")}
         onFund={openWalletToReceive}
       />
     );
@@ -155,9 +158,7 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">
-        Your {orderCurrency} balance is too low — pay with another token instead:
-      </p>
+      <p className="text-xs font-medium text-muted-foreground">{t("Your {orderCurrency} balance is too low — pay with another token instead:", { orderCurrency })}</p>
       <div className="space-y-1.5">
         {held.map((row) => (
           <PayWithOption

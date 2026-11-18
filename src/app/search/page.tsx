@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SearchPage } from "@medialane/ui";
 import { canonical } from "@/lib/seo";
+import { msg } from "@medialane/ui/i18n";
 
 export const metadata: Metadata = {
-  title: "Search",
-  description: "Search assets, collections and creators on Medialane.",
+  title: msg("Search"),
+  description: msg("Search assets, collections and creators on Medialane."),
   alternates: canonical("/search"),
 };
 

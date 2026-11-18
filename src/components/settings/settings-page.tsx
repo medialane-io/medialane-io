@@ -8,6 +8,7 @@ import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { RowStatus, RowTone } from "@/lib/settings/rows";
+import { useT } from "@medialane/ui/i18n";
 
 export function SettingsPage({
   title,
@@ -24,6 +25,7 @@ export function SettingsPage({
   back?: boolean;
   children: ReactNode;
 }) {
+  const t = useT();
   return (
     <ServiceFormShell
       icon={icon ?? <SettingsIcon className="h-4 w-4 text-white" />}
@@ -34,7 +36,7 @@ export function SettingsPage({
         back ? (
           <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("Back")}
           </Link>
         ) : undefined
       }
@@ -45,19 +47,20 @@ export function SettingsPage({
 }
 
 export function SettingsGate({ children }: { children: ReactNode }) {
+  const t = useT();
   const { hasWallet } = useWalletNativeSession();
   if (hasWallet) return <>{children}</>;
   return (
     <div className="space-y-4 px-4 py-24 text-center">
       <Wallet className="mx-auto h-12 w-12 text-muted-foreground" />
-      <h1 className="text-2xl font-bold">Secure your account</h1>
-      <p className="mx-auto max-w-sm text-muted-foreground">Secure your account to manage your creator settings.</p>
+      <h1 className="text-2xl font-bold">{t("Secure your account")}</h1>
+      <p className="mx-auto max-w-sm text-muted-foreground">{t("Secure your account to manage your creator settings.")}</p>
       <div className="btn-border-animated inline-block rounded-lg p-[1px]">
         <Button
           asChild
           className="rounded-[7px] bg-transparent text-white transition-all hover:bg-transparent hover:brightness-110 active:scale-[0.98]"
         >
-          <Link href="/connect?redirect_url=/settings">Get started</Link>
+          <Link href="/connect?redirect_url=/settings">{t("Get started")}</Link>
         </Button>
       </div>
     </div>

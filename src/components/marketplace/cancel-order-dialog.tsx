@@ -4,6 +4,7 @@ import { MarketplaceDialog } from "@/components/marketplace/dialog-frame";
 import type { CancelOrderHook } from "@/hooks/use-cancel-order";
 import { CancelOrderConfirm, TransactionDialogStates, successMessages } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
+import { useT } from "@medialane/ui/i18n";
 
 interface CancelOrderDialogProps {
   hook: CancelOrderHook;
@@ -16,6 +17,7 @@ interface CancelOrderDialogProps {
 }
 
 export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: CancelOrderDialogProps) {
+  const t = useT();
   const { order, phase, txHash, error, retryable, confirm, dismiss } = hook;
 
   const resolvedVariant: "listing" | "offer" =
@@ -36,10 +38,10 @@ export function CancelOrderDialog({ hook, variant, tokenName, tokenImage }: Canc
     >
       <TransactionDialogStates
         phase={phase}
-        statusMessage="Confirming onchain…"
+        statusMessage={t("Confirming onchain…")}
         txHash={txHash}
         error={error}
-        success={successMessages.cancelled({ kind: resolvedVariant })}
+        success={successMessages.cancelled({ kind: resolvedVariant }, t)}
         asset={{ name: resolvedName, image: resolveImage(order?.token?.image ?? tokenImage) }}
         errorTitle={`${resolvedVariant === "listing" ? "Listing" : "Offer"} cancellation failed`}
         errorDescription={`The transaction was submitted, but this ${resolvedVariant} could not be cancelled.`}

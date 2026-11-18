@@ -6,6 +6,7 @@ import { Mail, CheckCircle2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { useOnOpen } from "@medialane/ui/utils/use-on-open";
+import { useT } from "@medialane/ui/i18n";
 
 interface EmailVerifyDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface EmailVerifyDialogProps {
 }
 
 export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipInitialSend }: EmailVerifyDialogProps) {
+  const t = useT();
   const emailCode = useEmailCode(email);
   const [verified, setVerified] = useState(false);
   const { send, markReady, setCode } = emailCode;
@@ -41,10 +43,10 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             {verified ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Mail className="h-6 w-6 text-primary" />}
           </div>
-          <DialogTitle>{verified ? "You're all set" : "Verify your email"}</DialogTitle>
+          <DialogTitle>{verified ? t("You're all set") : t("Verify your email")}</DialogTitle>
           <DialogDescription>
             {verified
-              ? "Your email is confirmed. Your account is fully unrestricted."
+              ? t("Your email is confirmed. Your account is fully unrestricted.")
               : `Enter the 6-digit code we sent to ${email}.`}
           </DialogDescription>
         </DialogHeader>

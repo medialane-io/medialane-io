@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { msg } from "@medialane/ui/i18n";
 
 export const metadata: Metadata = {
-  title: "Search",
-  description: "Search for tokens and collections on Medialane.",
+  title: msg("Search"),
+  description: msg("Search for tokens and collections on Medialane."),
   robots: { index: false },
 };
 

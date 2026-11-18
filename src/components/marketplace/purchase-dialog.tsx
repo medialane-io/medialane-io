@@ -21,6 +21,7 @@ import { getTokenBySymbol } from "@medialane/sdk";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { PayWithPicker } from "@/components/marketplace/pay-with-picker";
+import { useT } from "@medialane/ui/i18n";
 
 interface PurchaseDialogProps {
   order: ApiOrder;
@@ -31,6 +32,7 @@ interface PurchaseDialogProps {
 
 
 export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: PurchaseDialogProps) {
+  const t = useT();
   const router = useRouter();
   const { address: walletAddress, hasWallet } = useWalletNativeSession();
   const { phase, busy, txHash, error, retryable, start, reset } = useMarketplaceTransaction();
@@ -114,26 +116,26 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     <MarketplaceDialog
       open={open}
       onOpenChange={handleClose}
-      title={isSuccess ? "Purchase complete" : busy ? "Processing purchase" : "Buy now"}
-      description="Confirm and complete this marketplace purchase with your Medialane wallet."
+      title={isSuccess ? t("Purchase complete") : busy ? t("Processing purchase") : t("Buy now")}
+      description={t("Confirm and complete this marketplace purchase with your Medialane wallet.")}
     >
       <TransactionDialogStates
         phase={phase}
         asset={{ name: assetName, image: assetImage }}
         txHash={txHash}
         error={error}
-        success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 })}
+        success={successMessages.purchased({ name: order.token?.name ?? "the asset", quantity: is1155 ? quantity : 1 }, t)}
         successActions={[
           {
-            label: "View asset",
+            label: t("View asset"),
             href: buildAssetHref("STARKNET", order.nftContract, order.nftTokenId),
             onClick: () => { onOpenChange(false); onSuccess?.(); },
           },
-          { label: "View portfolio", onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
+          { label: t("View portfolio"), onClick: () => { onOpenChange(false); router.push("/portfolio/assets"); } },
         ]}
         successChildren={<RewardEarned actionType="buy_asset" />}
-        errorTitle="Purchase failed"
-        errorDescription="The transaction was submitted, but the purchase could not be completed."
+        errorTitle={t("Purchase failed")}
+        errorDescription={t("The transaction was submitted, but the purchase could not be completed.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >
@@ -144,7 +146,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
             subtitle={
               <span className="flex items-center gap-1">
                 <Zap className="h-3 w-3 text-emerald-500" />
-                <span className="text-emerald-500">Digital Asset Ownership</span>
+                <span className="text-emerald-500">{t("Digital Asset Ownership")}</span>
               </span>
             }
             price={order.price}
@@ -156,13 +158,13 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
             {is1155 && maxQty > 1 && (
               <div className="flex items-center justify-between py-1">
-                <span className="text-sm text-muted-foreground">Quantity</span>
+                <span className="text-sm text-muted-foreground">{t("Quantity")}</span>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline" size="icon" className="h-7 w-7"
                     disabled={quantity <= 1}
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    aria-label="Decrease quantity"
+                    aria-label={t("Decrease quantity")}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
@@ -171,7 +173,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                     variant="outline" size="icon" className="h-7 w-7"
                     disabled={quantity >= maxQty}
                     onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
-                    aria-label="Increase quantity"
+                    aria-label={t("Increase quantity")}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -193,20 +195,20 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
 
             {!hasWallet ? (
               <p className="text-sm text-muted-foreground text-center py-2">
-                Secure your account to purchase this asset.
+                {t("Secure your account to purchase this asset.")}
               </p>
             ) : error && !retryable ? (
               <Button variant="secondary" className="w-full h-12 text-base font-semibold rounded-[11px]" onClick={() => onOpenChange(false)}>
-                Close
+                {t("Close")}
               </Button>
             ) : (
               <GradientButton onClick={handleBuyClick} disabled={!canBuy}>
                 {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
-                {error ? "Try again" : needsSwap && !paymentSymbol ? "Select a token to pay with" : "Buy now"}
+                {error ? t("Try again") : needsSwap && !paymentSymbol ? t("Select a token to pay with") : t("Buy now")}
               </GradientButton>
             )}
 
-            <DialogNote>Purchases settle atomically onchain and assets transfer instantly.</DialogNote>
+            <DialogNote>{t("Purchases settle atomically onchain and assets transfer instantly.")}</DialogNote>
           </div>
         </div>
       </TransactionDialogStates>

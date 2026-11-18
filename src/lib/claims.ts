@@ -1,15 +1,16 @@
 import { Gift } from "lucide-react";
 import { COLLECTION_NAME_CLAIM, type ServiceDefinition, type ServiceOverrides } from "@medialane/ui";
+import { msg } from "@medialane/ui/i18n";
 
 export const SHARED_CLAIM_KEYS = ["claim-username", "claim-collection", "claim-memecoin"] as const;
 
 export const AIRDROP_CLAIM: ServiceDefinition = {
   key: "claim-airdrop",
-  cta: "Claim",
-  blurb: "Join the Creator's Airdrop and claim a Genesis NFT.",
-  title: "Claim Airdrop",
-  subtitle: "Join the Creator's Airdrop",
-  description: "Join the Creator's Airdrop, earn XP while creating, and claim a Genesis NFT.",
+  cta: msg("Claim"),
+  blurb: msg("Join the Creator's Airdrop and claim a Genesis NFT."),
+  title: msg("Claim Airdrop"),
+  subtitle: msg("Join the Creator's Airdrop"),
+  description: msg("Join the Creator's Airdrop, earn XP while creating, and claim a Genesis NFT."),
   features: ["Free to join", "Earn XP while creating", "Claim a Genesis NFT"],
   icon: Gift,
   status: "live",

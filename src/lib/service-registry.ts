@@ -1,5 +1,6 @@
 import { Award, Package, Ticket } from "lucide-react";
 import { BRAND } from "@medialane/ui/data/brand";
+import { msg } from "@medialane/ui/i18n";
 
 export interface ServiceConfig {
 
@@ -25,7 +26,7 @@ const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   "pop-protocol": {
     serviceId: "pop-protocol",
     name: "POP Protocol",
-    description: "Soulbound proof-of-participation credential",
+    description: msg("Soulbound proof-of-participation credential"),
     icon: Award,
     badge: "POP",
     color: {
@@ -40,7 +41,7 @@ const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   "drop-collection": {
     serviceId: "drop-collection",
     name: "Collection Drop",
-    description: "Limited edition timed release",
+    description: msg("Limited edition timed release"),
     icon: Package,
     badge: "DROP",
     color: {
@@ -55,7 +56,7 @@ const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   "ip-tickets": {
     serviceId: "ip-tickets",
     name: "IP Tickets",
-    description: "Verifiable on-chain tickets",
+    description: msg("Verifiable on-chain tickets"),
     icon: Ticket,
     badge: "TICKETS",
     color: {

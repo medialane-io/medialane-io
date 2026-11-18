@@ -15,12 +15,13 @@ import { assetHref } from "@/lib/routes";
 import { useGenesisHolding } from "@/hooks/use-genesis-holding";
 import type { GenesisHolding } from "@/lib/genesis-holding";
 import { cn } from "@medialane/ui";
+import { useT, msg } from "@medialane/ui/i18n";
 
 const JOURNEYS = [
   {
     icon: ShoppingBag,
-    label: "Explore the marketplace",
-    description: "Buy, sell and collect programmable digital assets from creators worldwide.",
+    label: msg("Explore the marketplace"),
+    description: msg("Buy, sell and collect programmable digital assets from creators worldwide."),
     href: "/marketplace",
     accent: "from-brand-blue/20 to-brand-blue/5 border-brand-blue/20",
     iconColor: "text-brand-blue",
@@ -28,8 +29,8 @@ const JOURNEYS = [
   },
   {
     icon: Pencil,
-    label: "Create a digital asset",
-    description: "Mint your music, art, or content on-chain with programmable licensing.",
+    label: msg("Create a digital asset"),
+    description: msg("Mint your music, art, or content on-chain with programmable licensing."),
     href: "/launchpad/single-editions",
     accent: "from-brand-purple/20 to-brand-purple/5 border-brand-purple/20",
     iconColor: "text-brand-purple",
@@ -37,8 +38,8 @@ const JOURNEYS = [
   },
   {
     icon: Package,
-    label: "Launch a drop",
-    description: "Deploy a limited-edition NFT collection with custom mint conditions.",
+    label: msg("Launch a drop"),
+    description: msg("Deploy a limited-edition NFT collection with custom mint conditions."),
     href: "/launchpad/drop/create",
     accent: "from-brand-orange/20 to-brand-orange/5 border-brand-orange/20",
     iconColor: "text-brand-orange",
@@ -46,8 +47,8 @@ const JOURNEYS = [
   },
   {
     icon: Award,
-    label: "Claim a POP credential",
-    description: "Collect soulbound proof-of-participation NFTs from events you attended.",
+    label: msg("Claim a POP credential"),
+    description: msg("Collect soulbound proof-of-participation NFTs from events you attended."),
     href: "/launchpad/pop",
     accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20",
     iconColor: "text-emerald-400",
@@ -58,18 +59,18 @@ const JOURNEYS = [
 const HIGHLIGHTS = [
   {
     icon: Zap,
-    label: "Self-custody account",
-    description: "Secured by your device passkey.",
+    label: msg("Self-custody account"),
+    description: msg("Secured by your device passkey."),
   },
   {
     icon: Shield,
-    label: "Programmable licensing",
-    description: "Embed Berne Convention rights, royalties, and AI policy on-chain.",
+    label: msg("Programmable licensing"),
+    description: msg("Embed Berne Convention rights, royalties, and AI policy on-chain."),
   },
   {
     icon: Globe,
-    label: "Starknet mainnet",
-    description: "All assets are real, permanent, and permissionlessly verifiable.",
+    label: msg("Starknet mainnet"),
+    description: msg("All assets are real, permanent, and permissionlessly verifiable."),
   },
 ] as const;
 
@@ -80,10 +81,11 @@ function OnboardingBanner({
   holding: GenesisHolding | null;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const minted = Boolean(holding?.owned);
   const steps = [
-    { done: true, label: "Account created", sub: "Secured with a passkey" },
-    { done: true, label: "Account secured", sub: "MediaWallet on Starknet" },
+    { done: true, label: t("Account created"), sub: "Secured with a passkey" },
+    { done: true, label: t("Account secured"), sub: "MediaWallet on Starknet" },
     {
       done: minted,
       label: minted ? "Genesis NFT minted" : "Genesis NFT",
@@ -99,12 +101,12 @@ function OnboardingBanner({
           <button
             onClick={onDismiss}
             className="absolute top-3 right-3 h-6 w-6 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Dismiss"
+            aria-label={t("Dismiss")}
           >
             <X className="h-3.5 w-3.5" />
           </button>
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-3">
-            Setup complete
+            {t("Setup complete")}
           </p>
           <div className="flex flex-wrap gap-4">
             {steps.map((step, i) => (
@@ -119,7 +121,7 @@ function OnboardingBanner({
                   }
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold leading-none">{step.label}</p>
+                  <p className="text-sm font-semibold leading-none">{t(step.label)}</p>
                   {step.tokenId ? (
                     <Link
                       href={assetHref("STARKNET", MINT_CONTRACT, step.tokenId)}
@@ -142,6 +144,7 @@ function OnboardingBanner({
 }
 
 export function WelcomePageClient() {
+  const t = useT();
   const { address: walletAddress } = useWalletNativeSession();
   const [showBanner, setShowBanner] = useState(false);
   const { holding } = useGenesisHolding(walletAddress ?? null);
@@ -168,14 +171,14 @@ export function WelcomePageClient() {
         <div className="max-w-5xl mx-auto px-4 pt-10 pb-2">
           <span className="pill-badge inline-flex gap-1.5 mb-3">
             <Sparkles className="h-3 w-3" />
-            Welcome
+            {t("Welcome")}
           </span>
           <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-tight">
-            Your creativity,{" "}
-            <span className="gradient-text">on-chain.</span>
+            {t("Your creativity,")}{" "}
+            <span className="gradient-text">{t("on-chain.")}</span>
           </h1>
           <p className="mt-3 text-base text-muted-foreground max-w-xl">
-            Mint, monetize, trade, and collect creative assets, rwa and nfts.
+            {t("Mint, monetize, trade, and collect creative assets, rwa and nfts.")}
           </p>
         </div>
       </FadeIn>
@@ -185,7 +188,7 @@ export function WelcomePageClient() {
           <div className="mt-10">
             <div className="max-w-5xl mx-auto px-4 mb-4">
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Mint your genesis NFT
+                {t("Mint your genesis NFT")}
               </p>
             </div>
             <LaunchMint />
@@ -196,7 +199,7 @@ export function WelcomePageClient() {
       <FadeIn delay={holding?.owned ? 0.1 : 0.16}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-            Start here
+            {t("Start here")}
           </p>
           <Stagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {JOURNEYS.map((j) => (
@@ -213,11 +216,11 @@ export function WelcomePageClient() {
                     <j.icon className={cn("h-4 w-4", j.iconColor)} />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <p className="font-bold text-sm leading-snug">{j.label}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{j.description}</p>
+                    <p className="font-bold text-sm leading-snug">{t(j.label)}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t(j.description)}</p>
                   </div>
                   <div className={cn("flex items-center gap-1 text-xs font-semibold", j.iconColor)}>
-                    <span>Go</span>
+                    <span>{t("Go")}</span>
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </Link>
@@ -230,7 +233,7 @@ export function WelcomePageClient() {
       <FadeIn delay={holding?.owned ? 0.16 : 0.22}>
         <div className="max-w-5xl mx-auto px-4 mt-10">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-            Built different
+            {t("Built different")}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {HIGHLIGHTS.map((h) => (
@@ -238,8 +241,8 @@ export function WelcomePageClient() {
                 <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <h.icon className="h-4 w-4 text-primary" />
                 </div>
-                <p className="font-bold text-sm">{h.label}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{h.description}</p>
+                <p className="font-bold text-sm">{t(h.label)}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t(h.description)}</p>
               </div>
             ))}
           </div>
@@ -254,7 +257,7 @@ export function WelcomePageClient() {
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm">Genesis NFT collected</p>
+                <p className="font-bold text-sm">{t("Genesis NFT collected")}</p>
                 {holding.tokenId && (
                   <Link
                     href={assetHref("STARKNET", MINT_CONTRACT, holding.tokenId)}
@@ -266,7 +269,7 @@ export function WelcomePageClient() {
                 )}
               </div>
               <Button size="sm" variant="outline" asChild className="shrink-0">
-                <Link href="/portfolio/assets">View in portfolio</Link>
+                <Link href="/portfolio/assets">{t("View in portfolio")}</Link>
               </Button>
             </div>
           </div>

@@ -11,6 +11,7 @@ import { Input } from "@medialane/ui/input";
 import { Label } from "@medialane/ui/label";
 import { Textarea } from "@medialane/ui/textarea";
 import { Loader2 } from "lucide-react";
+import { useT } from "@medialane/ui/i18n";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";
 
@@ -23,6 +24,7 @@ export function ClaimCollectionPanel({
   helperText,
   kind = "collection",
 }: { helperText?: React.ReactNode; kind?: "collection" | "coin" } = {}) {
+  const t = useT();
   const { address: walletAddress } = useWalletNativeSession();
   const { session } = useSession();
   const [contractAddress, setContractAddress] = useState("");
@@ -87,14 +89,14 @@ export function ClaimCollectionPanel({
       {step === "success" && (
         <div className="rounded-xl border border-green-500/40 bg-green-500/5 p-5 space-y-4">
           <div>
-            <p className="font-semibold text-foreground">Collection claimed successfully</p>
+            <p className="font-semibold text-foreground">{t("Collection claimed successfully")}</p>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Your collection is verified and added to your portfolio.
+              {t("Your collection is verified and added to your portfolio.")}
             </p>
           </div>
           {claimedCollection && (
             <div className="rounded-lg bg-muted/50 px-3 py-2">
-              <p className="text-sm font-medium">{claimedCollection.name ?? "Collection"}</p>
+              <p className="text-sm font-medium">{claimedCollection.name ?? t("Collection")}</p>
               <p className="text-xs text-muted-foreground tabular-nums mt-0.5 truncate">
                 {claimedCollection.contractAddress}
               </p>
@@ -102,14 +104,14 @@ export function ClaimCollectionPanel({
           )}
           <div className="flex gap-3">
             <Button asChild size="sm">
-              <Link href="/portfolio/collections">View in Portfolio</Link>
+              <Link href="/portfolio/collections">{t("View in Portfolio")}</Link>
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => { setContractAddress(""); setClaimedCollection(null); setStep("input"); }}
             >
-              Claim Another
+              {t("Claim Another")}
             </Button>
           </div>
         </div>
@@ -117,17 +119,15 @@ export function ClaimCollectionPanel({
 
       {step === "pending" && (
         <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-2">
-          <p className="font-semibold text-foreground">Claim under review</p>
-          <p className="text-sm text-muted-foreground">
-            Our team will verify ownership. You&apos;ll be notified at {email} once processed.
-          </p>
+          <p className="font-semibold text-foreground">{t("Claim under review")}</p>
+          <p className="text-sm text-muted-foreground">{t("Our team will verify ownership. You'll be notified at {email} once processed.", { email })}</p>
         </div>
       )}
 
       {(step === "input" || step === "verifying") && (
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="contract">Contract address</Label>
+            <Label htmlFor="contract">{t("Contract address")}</Label>
             <Input
               id="contract"
               placeholder="0x…"
@@ -138,7 +138,7 @@ export function ClaimCollectionPanel({
             />
             {contractAddress.trim() !== "" && !isValidAddress(contractAddress) ? (
               <p className="text-xs text-destructive">
-                That doesn&apos;t look like a Starknet address. It should start with “0x”.
+                {t("That doesn't look like a Starknet address. It should start with “0x”.")}
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">{helperText ?? DEFAULT_HELPER_TEXT}</p>
@@ -151,8 +151,8 @@ export function ClaimCollectionPanel({
             className="w-full"
           >
             {step === "verifying"
-              ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying…</>
-              : "Verify & Claim"
+              ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t("Verifying…")}</>
+              : t("Verify & Claim")
             }
           </Button>
         </div>
@@ -161,36 +161,35 @@ export function ClaimCollectionPanel({
       {step === "manual" && (
         <div className="space-y-5">
           <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1">
-            <p className="text-sm font-medium text-foreground">Manual verification required</p>
+            <p className="text-sm font-medium text-foreground">{t("Manual verification required")}</p>
             <p className="text-xs text-muted-foreground">
-              {verifyError}. Submit a request for our team to review.
-            </p>
+              {t("{verifyError}. Submit a request for our team to review.", { verifyError })}</p>
           </div>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Your email *</Label>
+              <Label htmlFor="email">{t("Your email *")}</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t("you@example.com")}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="notes">Tell us about your connection to this collection</Label>
+              <Label htmlFor="notes">{t("Tell us about your connection to this collection")}</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                placeholder="e.g. I deployed this contract on Starknet mainnet…"
+                placeholder={t("e.g. I deployed this contract on Starknet mainnet…")}
               />
             </div>
             {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}
             <div className="flex gap-3">
-              <Button onClick={handleManualRequest} className="flex-1">Submit Request</Button>
-              <Button variant="outline" onClick={() => setStep("input")}>Back</Button>
+              <Button onClick={handleManualRequest} className="flex-1">{t("Submit Request")}</Button>
+              <Button variant="outline" onClick={() => setStep("input")}>{t("Back")}</Button>
             </div>
           </div>
         </div>

@@ -15,21 +15,24 @@ import { getTokenBySymbol } from "@medialane/sdk";
 import { ListingsGrid } from "@/components/marketplace/listings-grid";
 import { ActivityTicker } from "@/components/shared/activity-ticker";
 import { useMarketActions } from "@/lib/use-market-actions";
+import { useT } from "@medialane/ui/i18n";
 
 function PlatformStatsBar() {
+  const t = useT();
   const { stats } = usePlatformStats();
 
   return (
     <StatPillRow
       items={[
-        { label: "Markets", value: stats?.markets ?? null },
-        { label: "Sales", value: stats?.sales ?? null },
+        { label: t("Markets"), value: stats?.markets ?? null },
+        { label: t("Sales"), value: stats?.sales ?? null },
       ]}
     />
   );
 }
 
 export default function MarketplacePageClient() {
+  const t = useT();
   const filters = useMarketplaceFilters();
   const market = useMarketActions();
 
@@ -37,7 +40,7 @@ export default function MarketplacePageClient() {
     <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
 
       <div className="space-y-2 pt-8">
-        <h1 className="text-3xl font-bold">Onchain markets</h1>
+        <h1 className="text-3xl font-bold">{t("Onchain markets")}</h1>
         <PlatformStatsBar />
       </div>
 

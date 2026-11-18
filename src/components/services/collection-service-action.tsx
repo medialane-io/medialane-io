@@ -5,6 +5,7 @@ import { PopClaimButton } from "@medialane/ui";
 import Link from "next/link";
 import { dropHref } from "@medialane/sdk";
 import { Button } from "@medialane/ui/button";
+import { useT } from "@medialane/ui/i18n";
 
 interface CollectionServiceActionProps {
   service: string | null | undefined;
@@ -12,6 +13,7 @@ interface CollectionServiceActionProps {
 }
 
 export function CollectionServiceAction({ service, contractAddress }: CollectionServiceActionProps) {
+  const t = useT();
   const config = getServiceConfig(service);
   if (!config?.hasDetailAction) return null;
 
@@ -22,7 +24,7 @@ export function CollectionServiceAction({ service, contractAddress }: Collection
   if (service === "drop-collection") {
     return (
       <Button asChild className="w-full">
-        <Link href={dropHref(contractAddress)}>Mint from this drop</Link>
+        <Link href={dropHref(contractAddress)}>{t("Mint from this drop")}</Link>
       </Button>
     );
   }

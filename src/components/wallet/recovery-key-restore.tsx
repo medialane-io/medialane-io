@@ -9,8 +9,10 @@ import { sealImportedOwnerKey } from "@/lib/wallet/passkey";
 import { saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { isOwnerOf } from "@/lib/wallet/devices";
 import { parseRecoveryKey, InvalidRecoveryKeyError } from "@medialane/sdk/starknet";
+import { useT } from "@medialane/ui/i18n";
 
 export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
+  const t = useT();
   const [keyInput, setKeyInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -52,27 +54,26 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        Paste the recovery key you saved from Settings. This device will ask for a new passkey and
-        lock the key behind it.
+        {t("Paste the recovery key you saved from Settings. This device will ask for a new passkey and lock the key behind it.")}
       </p>
       <Input
         value={keyInput}
         onChange={(e) => setKeyInput(e.target.value)}
-        placeholder="medialane-recovery:v1:…"
+        placeholder={t("medialane-recovery:v1:…")}
         autoComplete="off"
         spellCheck={false}
         className="font-mono text-xs"
       />
       {preview && (
         <p className="text-xs text-muted-foreground">
-          This key restores account{" "}
+          {t("This key restores account")}{" "}
           <span className="font-mono text-foreground break-all">{preview.walletAddress}</span>
         </p>
       )}
       {err && <p className="text-sm text-destructive">{err}</p>}
       <Button onClick={restore} disabled={busy || !preview}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Restore my account
+        {t("Restore my account")}
       </Button>
     </div>
   );

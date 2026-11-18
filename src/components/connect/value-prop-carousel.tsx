@@ -6,25 +6,26 @@ import {
   ShieldCheck, Radio, Zap, Shuffle, Package, Gem, Fingerprint, Rocket,
   ShoppingBag, type LucideIcon,
 } from "lucide-react";
+import { msg } from "@medialane/ui/i18n";
 
 const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
-  { label: "Own your work", icon: Award },
-  { label: "Create freely", icon: Pencil },
-  { label: "Get rewarded", icon: Trophy },
-  { label: "Sign in with a glance", icon: ScanFace },
-  { label: "Free to mint", icon: Sparkles },
-  { label: "Self custody", icon: KeyRound },
-  { label: "Global markets", icon: Globe },
-  { label: "Immutable contracts", icon: Lock },
-  { label: "Worldwide protection", icon: ShieldCheck },
-  { label: "Censorship resistant", icon: Radio },
-  { label: "Sponsored transactions", icon: Zap },
-  { label: "Remix", icon: Shuffle },
-  { label: "Limited editions", icon: Package },
-  { label: "Creator's Fund", icon: Gem },
-  { label: "Asset provenance", icon: Fingerprint },
-  { label: "Creator Launchpad", icon: Rocket },
-  { label: "NFT Marketplace", icon: ShoppingBag },
+  { label: msg("Own your work"), icon: Award },
+  { label: msg("Create freely"), icon: Pencil },
+  { label: msg("Get rewarded"), icon: Trophy },
+  { label: msg("Sign in with a glance"), icon: ScanFace },
+  { label: msg("Free to mint"), icon: Sparkles },
+  { label: msg("Self custody"), icon: KeyRound },
+  { label: msg("Global markets"), icon: Globe },
+  { label: msg("Immutable contracts"), icon: Lock },
+  { label: msg("Worldwide protection"), icon: ShieldCheck },
+  { label: msg("Censorship resistant"), icon: Radio },
+  { label: msg("Sponsored transactions"), icon: Zap },
+  { label: msg("Remix"), icon: Shuffle },
+  { label: msg("Limited editions"), icon: Package },
+  { label: msg("Creator's Fund"), icon: Gem },
+  { label: msg("Asset provenance"), icon: Fingerprint },
+  { label: msg("Creator Launchpad"), icon: Rocket },
+  { label: msg("NFT Marketplace"), icon: ShoppingBag },
 ];
 
 function Track({ hidden }: { hidden?: boolean }) {

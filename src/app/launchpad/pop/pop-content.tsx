@@ -11,12 +11,16 @@ import { PopClaimButton, ServiceHeader, usePopCollections } from "@medialane/ui"
 import { ClaimBackButton } from "@/components/claim/claim-back-button";
 import { resolveImage } from "@/lib/utils";
 import type { ApiCollection } from "@medialane/sdk";
+import { useT, msg } from "@medialane/ui/i18n";
+import { useFormat } from "@medialane/ui/i18n";
 
 type CollectionWithAttributes = ApiCollection & {
   attributes?: { trait_type?: string; value?: string }[];
 };
 
 function PopCollectionCard({ collection }: { collection: ApiCollection }) {
+  const intl = useFormat();
+  const t = useT();
   const [imgError, setImgError] = useState(false);
   const imageUrl = resolveImage(collection.image);
   const showImage = imageUrl && !imgError;
@@ -29,7 +33,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
         {showImage ? (
           <Image
             src={imageUrl}
-            alt={collection.name ?? "POP Collection"}
+            alt={collection.name ?? t("POP Collection")}
             fill
             className="object-cover"
             onError={() => setImgError(true)}
@@ -41,13 +45,13 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
           </div>
         )}
         <span className="absolute top-2 right-2 text-2xs font-bold uppercase tracking-widest text-white bg-black/50 backdrop-blur-sm rounded-full px-2 py-0.5">
-          POP
+          {t("POP")}
         </span>
       </div>
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex-1 space-y-1">
-          <p className="font-bold text-sm leading-tight">{collection.name ?? "Unnamed Event"}</p>
+          <p className="font-bold text-sm leading-tight">{collection.name ?? t("Unnamed Event")}</p>
           {collection.description && (
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
               {collection.description}
@@ -58,8 +62,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
           {collection.totalSupply != null && (
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
-              {collection.totalSupply.toLocaleString()} claimed
-            </span>
+              {t("{totalSupply} claimed", { totalSupply: intl.number(collection.totalSupply) })}</span>
           )}
           {collection.symbol && (
             <span className="flex items-center gap-1">
@@ -91,27 +94,28 @@ function PopCollectionCardSkeleton() {
 const POP_FEATURES = [
   {
     icon: Award,
-    title: "Soulbound Credential",
+    title: msg("Soulbound Credential"),
     desc: "Non-transferable — permanently tied to your account onchain.",
   },
   {
     icon: Users,
-    title: "One Per Address",
+    title: msg("One Per Address"),
     desc: "Each participant claims exactly one credential per event.",
   },
   {
     icon: Zap,
-    title: "Free to Claim",
+    title: msg("Free to Claim"),
     desc: "No protocol fee — participants claim one credential per event.",
   },
   {
     icon: ShieldCheck,
-    title: "Verifiable On-Chain",
+    title: msg("Verifiable On-Chain"),
     desc: "Credentials are permanently readable and provable onchain.",
   },
 ];
 
 export function PopContent() {
+  const t = useT();
   const { collections, isLoading } = usePopCollections();
 
   const publicCollections = collections.filter(
@@ -129,8 +133,8 @@ export function PopContent() {
             <ServiceHeader
               plain
               icon={<Award className="h-4 w-4 text-white" />}
-              title="POP Events"
-              subtitle="Immutable certificates for authenticity. Browse events or create one."
+              title={t("POP Events")}
+              subtitle={t("Immutable certificates for authenticity. Browse events or create one.")}
             />
           </div>
         </FadeIn>
@@ -141,7 +145,7 @@ export function PopContent() {
               className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold text-white bg-brand-purple hover:brightness-110 transition-colors"
             >
               <Plus className="h-4 w-4" />
-              New event
+              {t("New event")}
             </Link>
           </div>
         </FadeIn>
@@ -165,20 +169,20 @@ export function PopContent() {
         <FadeIn>
           <div className="flex items-center justify-between">
             <div>
-              <p className="section-label">Available</p>
-              <h2 className="text-xl font-bold mt-0.5">Open for claiming</h2>
+              <p className="section-label">{t("Available")}</p>
+              <h2 className="text-xl font-bold mt-0.5">{t("Open for claiming")}</h2>
             </div>
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <Link href="/launchpad/pop/my-events">
                   <LayoutList className="h-3.5 w-3.5" />
-                  My Events
+                  {t("My Events")}
                 </Link>
               </Button>
               <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5">
                 <Link href="/launchpad/pop/create">
                   <Plus className="h-3.5 w-3.5" />
-                  Create Event
+                  {t("Create Event")}
                 </Link>
               </Button>
             </div>
@@ -196,7 +200,7 @@ export function PopContent() {
                 <Award className="h-10 w-10 text-muted-foreground/20" />
               </div>
               <p className="text-sm text-muted-foreground">
-                No active POP events right now. Check back after your next event.
+                {t("No active POP events right now. Check back after your next event.")}
               </p>
             </div>
           </FadeIn>

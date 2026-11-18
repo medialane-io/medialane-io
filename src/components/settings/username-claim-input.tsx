@@ -4,16 +4,18 @@ import { AtSign, Loader2 } from "lucide-react";
 import { Button } from "@medialane/ui/button";
 import { Input } from "@medialane/ui/input";
 import type { CheckState } from "./types";
+import { useT } from "@medialane/ui/i18n";
 
 const EMAIL_GATE_ERROR = "Verify your email to claim a username.";
 
 export function ClaimError({ error, onVerifyEmail }: { error: string; onVerifyEmail: () => void }) {
+  const t = useT();
   if (error === EMAIL_GATE_ERROR) {
     return (
       <p className="text-sm text-destructive mt-2">
         {error}{" "}
         <button type="button" onClick={onVerifyEmail} className="underline font-medium hover:text-foreground">
-          Verify email
+          {t("Verify email")}
         </button>
       </p>
     );
@@ -33,6 +35,7 @@ export function UsernameClaimInput({
   loading: boolean;
   disabled: boolean;
 }) {
+  const t = useT();
   const isAvailable = checkState === "available";
   const isChecking = checkState === "checking";
 
@@ -43,7 +46,7 @@ export function UsernameClaimInput({
           <AtSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <Input
             className="pl-7 tabular-nums"
-            placeholder="yourname"
+            placeholder={t("yourname")}
             value={value}
             onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
             maxLength={20}
@@ -57,7 +60,7 @@ export function UsernameClaimInput({
             disabled={loading || disabled}
             className="bg-green-600 hover:bg-green-700 text-white shrink-0"
           >
-            {loading ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Submitting…</> : `Claim @${value}`}
+            {loading ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />{t("Submitting…")}</> : `Claim @${value}`}
           </Button>
         ) : (
           <Button
@@ -66,15 +69,15 @@ export function UsernameClaimInput({
             variant="outline"
             className="shrink-0"
           >
-            {isChecking ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />Checking…</> : "Check"}
+            {isChecking ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />{t("Checking…")}</> : t("Check")}
           </Button>
         )}
       </div>
       {checkState === "taken" && (
-        <p className="text-xs text-destructive">{checkReason ?? "That username is not available."}</p>
+        <p className="text-xs text-destructive">{checkReason ?? t("That username is not available.")}</p>
       )}
       {checkState === "available" && (
-        <p className="text-xs text-green-600 dark:text-green-500 font-medium">@{value} is available!</p>
+        <p className="text-xs text-green-600 dark:text-green-500 font-medium">{t("@{value} is available!", { value })}</p>
       )}
     </div>
   );

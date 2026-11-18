@@ -13,6 +13,7 @@ import { AlertTriangle, HandCoins, Tag, X } from "lucide-react";
 import { resolveImage } from "@/lib/utils";
 import type { AcceptOfferHook } from "@/hooks/use-accept-offer";
 import type { ApiOrder } from "@medialane/sdk";
+import { useT } from "@medialane/ui/i18n";
 
 interface AcceptOfferDialogProps {
   hook: AcceptOfferHook;
@@ -25,6 +26,7 @@ interface AcceptOfferDialogProps {
 }
 
 export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing }: AcceptOfferDialogProps) {
+  const t = useT();
   const {
     isOpen,
     selectedOrder,
@@ -70,12 +72,8 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               <AlertTriangle className="h-4.5 w-4.5 text-amber-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">Active listing detected</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Accepting this offer will transfer the NFT, leaving{" "}
-                {activeListings.length === 1 ? "your listing" : `your ${activeListings.length} listings`}{" "}
-                unfulfillable. Cancel {activeListings.length === 1 ? "it" : "them"} first to keep the marketplace clean.
-              </p>
+              <p className="text-sm font-semibold text-foreground">{t("Active listing detected")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t.rich("Accepting this offer will transfer the NFT, leaving {value} unfulfillable. Cancel {value2} first to keep the marketplace clean.", { value: activeListings.length === 1 ? "your listing" : `your ${activeListings.length} listings`, value2: activeListings.length === 1 ? "it" : "them" })}</p>
             </div>
           </div>
 
@@ -88,7 +86,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Tag className="h-3.5 w-3.5 shrink-0" />
                   <span>
-                    Listed for{" "}
+                    {t("Listed for")}{" "}
                     <span className="font-medium text-foreground">
                       {formatDisplayPrice(listing.price.formatted)} {listing.price.currency}
                     </span>
@@ -100,7 +98,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
                     className="flex items-center gap-1 rounded-lg border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
                   >
                     <X className="h-3 w-3" />
-                    Cancel listing
+                    {t("Cancel listing")}
                   </button>
                 )}
               </div>
@@ -112,13 +110,13 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               onClick={dismissWarning}
               className="flex-1 h-9 rounded-xl border border-border/50 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50"
             >
-              Dismiss
+              {t("Dismiss")}
             </button>
             <button
               onClick={proceedFromWarning}
               className="flex-1 h-9 rounded-xl bg-primary text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              Accept anyway
+              {t("Accept anyway")}
             </button>
           </div>
         </div>
@@ -128,10 +126,10 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
           asset={{ name, image }}
           txHash={txHash}
           error={error}
-          success={successMessages.accepted({ name, price: priceLabel })}
+          success={successMessages.accepted({ name, price: priceLabel }, t)}
           successChildren={<RewardEarned actionType="offer_accepted_seller" />}
-          errorTitle="Offer acceptance failed"
-          errorDescription="The transaction could not be completed. Your asset is still listed."
+          errorTitle={t("Offer acceptance failed")}
+          errorDescription={t("The transaction could not be completed. Your asset is still listed.")}
           onRetry={retryable ? confirmAccept : undefined}
           onDone={dismiss}
         >
@@ -147,17 +145,14 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               buyerHasFunds === false ? (
                 <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <AlertDescription className="text-xs">
-                    Buyer may have insufficient {selectedOrder?.price.currency}. The offer stays
-                    active if the payment fails.
-                  </AlertDescription>
+                  <AlertDescription className="text-xs">{t("Buyer may have insufficient {currency}. The offer stays active if the payment fails.", { currency: selectedOrder?.price.currency ?? "" })}</AlertDescription>
                 </Alert>
               ) : null
             }
             error={error}
-            secondaryLabel="Cancel"
+            secondaryLabel={t("Cancel")}
             onSecondary={dismiss}
-            primaryLabel="Accept offer"
+            primaryLabel={t("Accept offer")}
             onPrimary={confirmAccept}
           />
         </TransactionDialogStates>

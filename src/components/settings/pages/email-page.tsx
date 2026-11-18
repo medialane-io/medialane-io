@@ -10,8 +10,10 @@ import { SettingsGate, SettingsPage } from "@/components/settings/settings-page"
 import { EmailVerifyDialog } from "@/components/settings/email-verify-dialog";
 import { useAccountEmail } from "@/hooks/use-account-email";
 import { formatDeadline } from "@/lib/settings/rows";
+import { useT } from "@medialane/ui/i18n";
 
 export default function EmailSettingsPage() {
+  const t = useT();
   const { status, markVerified, changeEmail } = useAccountEmail();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [skipInitialSend, setSkipInitialSend] = useState(false);
@@ -47,13 +49,13 @@ export default function EmailSettingsPage() {
 
   return (
     <SettingsGate>
-      <SettingsPage title="Email" subtitle="Used for account notices and signing back in." icon={<Mail className="h-4 w-4 text-white" />}>
+      <SettingsPage title={t("Email")} subtitle={t("Used for account notices and signing back in.")} icon={<Mail className="h-4 w-4 text-white" />}>
         <AccountSection
           icon={Mail}
           iconColor="text-blue-600 dark:text-blue-400"
           iconBg="bg-blue-500/10"
-          title="Email"
-          description="Used for account notices and signing back in."
+          title={t("Email")}
+          description={t("Used for account notices and signing back in.")}
         >
           {editOpen ? (
             <div className="space-y-3">
@@ -65,7 +67,7 @@ export default function EmailSettingsPage() {
                   setChangeStatus("idle");
                   setChangeError(null);
                 }}
-                placeholder="you@example.com"
+                placeholder={t("you@example.com")}
                 disabled={changeStatus === "saving"}
                 className="w-full"
                 onKeyDown={(e) => e.key === "Enter" && input.trim() && void handleChange()}
@@ -73,14 +75,14 @@ export default function EmailSettingsPage() {
               <div className="flex gap-2">
                 <Button onClick={handleChange} disabled={!input.trim() || changeStatus === "saving"} className="flex-1 sm:flex-none">
                   {changeStatus === "saving" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                  Save
+                  {t("Save")}
                 </Button>
                 <Button variant="ghost" onClick={cancelEdit} disabled={changeStatus === "saving"}>
-                  Cancel
+                  {t("Cancel")}
                 </Button>
               </div>
               {changeStatus === "error" && changeError ? <p className="text-sm text-destructive">{changeError}</p> : null}
-              <p className="text-xs text-muted-foreground">You&apos;ll need to verify the new email.</p>
+              <p className="text-xs text-muted-foreground">{t("You'll need to verify the new email.")}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -90,20 +92,20 @@ export default function EmailSettingsPage() {
                     <span className="min-w-0 truncate text-sm text-foreground">{status.email}</span>
                     {status.verified ? (
                       <Badge variant="outline" className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="h-3 w-3" /> Verified
+                        <CheckCircle2 className="h-3 w-3" /> {t("Verified")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="gap-1 border-yellow-500/40 bg-yellow-500/10 text-2xs text-yellow-700 dark:text-yellow-400">
-                        <Clock className="h-3 w-3" /> Not verified
+                        <Clock className="h-3 w-3" /> {t("Not verified")}
                       </Badge>
                     )}
                   </div>
                   {!status.verified && status.deadline ? (
-                    <p className="text-sm text-muted-foreground">Please confirm by {formatDeadline(status.deadline, "long")}.</p>
+                    <p className="text-sm text-muted-foreground">{t("Please confirm by {formatDeadline}.", { formatDeadline: formatDeadline(status.deadline, "long") })}</p>
                   ) : null}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Loading…</p>
+                <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
               )}
               <div className="flex flex-wrap gap-2">
                 {status && !status.verified ? (
@@ -114,7 +116,7 @@ export default function EmailSettingsPage() {
                       setDialogOpen(true);
                     }}
                   >
-                    Verify email
+                    {t("Verify email")}
                   </Button>
                 ) : null}
                 <Button
@@ -124,7 +126,7 @@ export default function EmailSettingsPage() {
                     setInput(status?.email ?? "");
                   }}
                 >
-                  Change email
+                  {t("Change email")}
                 </Button>
               </div>
             </div>

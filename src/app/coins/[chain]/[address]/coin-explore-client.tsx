@@ -18,12 +18,14 @@ import { collectionHref } from "@/lib/routes";
 import { resolveImage } from "@/lib/utils";
 import { EXPLORER_URL } from "@/lib/constants";
 import { profileHref } from "@/lib/routes";
+import { useT } from "@medialane/ui/i18n";
 
 function formatCompact(n: number): string {
   return new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 2 }).format(n);
 }
 
 export function CoinExploreClient({ address }: { address: string }) {
+  const t = useT();
   const router = useRouter();
   const { coin, isLoading } = useCoin(address);
   const { price, status, isLoading: priceLoading } = useCoinPrice(coin ?? { contractAddress: address });
@@ -58,16 +60,16 @@ export function CoinExploreClient({ address }: { address: string }) {
   const initials = symbol.trim().slice(0, 2).toUpperCase();
 
   const stats: { label: string; value: string }[] = [];
-  if (supply != null && supply > 0) stats.push({ label: "Supply", value: formatCompact(supply) });
+  if (supply != null && supply > 0) stats.push({ label: t("Supply"), value: formatCompact(supply) });
   if (marketCap != null) {
     stats.push({
-      label: "Market Cap",
+      label: t("Market Cap"),
       value: marketCapUsd != null
         ? fmtUsd(marketCapUsd)
         : `${formatCompact(marketCap)} ${price?.quoteSymbol ?? ""}`.trim(),
     });
   }
-  if (price?.quoteSymbol) stats.push({ label: "Priced in", value: price.quoteSymbol });
+  if (price?.quoteSymbol) stats.push({ label: t("Priced in"), value: price.quoteSymbol });
 
   return (
     <div className="relative z-0 min-h-screen">
@@ -107,23 +109,23 @@ export function CoinExploreClient({ address }: { address: string }) {
         </div>
 
         <Panel className="p-5">
-          <p className="mb-1.5 text-2xs uppercase tracking-widest text-muted-foreground">Price</p>
+          <p className="mb-1.5 text-2xs uppercase tracking-widest text-muted-foreground">{t("Price")}</p>
           {priceLoading ? (
             <div className="h-9 w-40 rounded bg-muted-foreground/20 animate-pulse" />
           ) : price ? (
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-3xl font-bold tabular-nums text-brand-orange">{formatCoinPrice(price.quotePerCoin)}</span>
-              <span className="text-sm text-muted-foreground">{price.quoteSymbol ?? "quote"} / {symbol}</span>
+              <span className="text-sm text-muted-foreground">{price.quoteSymbol ?? t("quote")} / {symbol}</span>
               {priceUsd != null && (
                 <span className="text-sm text-muted-foreground/70">≈ {fmtUsd(priceUsd)}</span>
               )}
             </div>
           ) : status === "pre-launch" ? (
-            <p className="text-sm text-muted-foreground">Not trading yet. Liquidity has not been launched for this coin.</p>
+            <p className="text-sm text-muted-foreground">{t("Not trading yet. Liquidity has not been launched for this coin.")}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Price unavailable right now.</p>
+            <p className="text-sm text-muted-foreground">{t("Price unavailable right now.")}</p>
           )}
-          {price && <p className="mt-2 text-2xs text-muted-foreground/70">Live market price · updates every 30s</p>}
+          {price && <p className="mt-2 text-2xs text-muted-foreground/70">{t("Live market price · updates every 30s")}</p>}
         </Panel>
 
         {stats.length > 0 && (
@@ -166,13 +168,13 @@ export function CoinExploreClient({ address }: { address: string }) {
               }
               className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/70 py-3 text-sm font-semibold transition-colors hover:bg-card"
             >
-              <ArrowUp className="h-4 w-4" /> Send {symbol}
+              <ArrowUp className="h-4 w-4" />{" "}{t("Send {symbol}", { symbol })}
             </button>
             <button
               onClick={() => openWalletPanel({ name: "home", autoOpenReceive: true })}
               className="flex items-center justify-center gap-2 rounded-2xl border border-border/60 bg-card/70 py-3 text-sm font-semibold transition-colors hover:bg-card"
             >
-              <ArrowDown className="h-4 w-4" /> Receive
+              <ArrowDown className="h-4 w-4" /> {t("Receive")}
             </button>
           </div>
         )}
@@ -185,8 +187,7 @@ export function CoinExploreClient({ address }: { address: string }) {
               rel="noopener noreferrer"
               className="bg-brand-blue"
             >
-              <ArrowUpRight className="h-4 w-4" /> Trade {symbol} on the Starknet app
-            </a>
+              <ArrowUpRight className="h-4 w-4" />{" "}{t("Trade {symbol} on the Starknet app", { symbol })}</a>
           </GradientButton>
         )}
 
@@ -194,7 +195,7 @@ export function CoinExploreClient({ address }: { address: string }) {
           <span>{address.slice(0, 6)}…{address.slice(-4)}</span>
           <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground"><ExternalLink className="h-3.5 w-3.5" /></a>
           {coin?.creator && (
-            <Link href={profileHref({ address: coin.creator })} className="hover:text-foreground">by {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
+            <Link href={profileHref({ address: coin.creator })} className="hover:text-foreground">{t("by")} {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
           )}
         </div>
       </div>

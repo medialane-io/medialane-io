@@ -13,10 +13,12 @@ import { Input } from "@medialane/ui/input";
 import { useEmailCode } from "@/hooks/use-email-code";
 import { useWhenChanged } from "@/hooks/use-when-changed";
 import { Alert, AlertDescription } from "@medialane/ui/alert";
+import { useT } from "@medialane/ui/i18n";
 
 type Step = "loading" | "add-email" | "code" | "verified";
 
 export default function VerifyEmailContent() {
+  const t = useT();
   const router = useRouter();
   const { hasWallet, address: walletAddress } = useWalletNativeSession();
   const { session } = useSession();
@@ -76,8 +78,8 @@ export default function VerifyEmailContent() {
                 )}
               </div>
             </div>
-            <CardTitle>{hasWallet ? "Loading…" : "Sign in first"}</CardTitle>
-            {!hasWallet && <CardDescription>You need an account before you can verify an email.</CardDescription>}
+            <CardTitle>{hasWallet ? t("Loading…") : t("Sign in first")}</CardTitle>
+            {!hasWallet && <CardDescription>{t("You need an account before you can verify an email.")}</CardDescription>}
           </CardHeader>
         </Card>
       </div>
@@ -94,8 +96,8 @@ export default function VerifyEmailContent() {
                 <CheckCircle2 className="h-6 w-6 text-emerald-500" />
               </div>
             </div>
-            <CardTitle>You&apos;re all set</CardTitle>
-            <CardDescription>Your email is confirmed. Your account is fully unrestricted.</CardDescription>
+            <CardTitle>{t("You're all set")}</CardTitle>
+            <CardDescription>{t("Your email is confirmed. Your account is fully unrestricted.")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="btn-border-animated w-full rounded-lg p-[1px]">
@@ -104,7 +106,7 @@ export default function VerifyEmailContent() {
                 size="lg"
                 onClick={() => router.back()}
               >
-                Done
+                {t("Done")}
               </Button>
             </div>
           </CardContent>
@@ -123,8 +125,8 @@ export default function VerifyEmailContent() {
                 <Mail className="h-6 w-6 text-primary" />
               </div>
             </div>
-            <CardTitle>Add your email</CardTitle>
-            <CardDescription>We&apos;ll send a 6-digit code to confirm it&apos;s yours.</CardDescription>
+            <CardTitle>{t("Add your email")}</CardTitle>
+            <CardDescription>{t("We'll send a 6-digit code to confirm it's yours.")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {error && (
@@ -135,7 +137,7 @@ export default function VerifyEmailContent() {
             )}
             <Input
               type="email"
-              placeholder="you@example.com"
+              placeholder={t("you@example.com")}
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && emailInput.trim() && void handleAddEmail()}
@@ -149,7 +151,7 @@ export default function VerifyEmailContent() {
                 onClick={handleAddEmail}
                 disabled={!emailInput.trim()}
               >
-                Send code
+                {t("Send code")}
               </Button>
             </div>
           </CardContent>
@@ -167,8 +169,8 @@ export default function VerifyEmailContent() {
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle>Verify your email</CardTitle>
-          <CardDescription>Enter the 6-digit code we sent to {email}.</CardDescription>
+          <CardTitle>{t("Verify your email")}</CardTitle>
+          <CardDescription>{t("Enter the 6-digit code we sent to {email}.", { email: email ?? "" })}</CardDescription>
         </CardHeader>
         <CardContent>
           <EmailCodeEntry emailCode={emailCode} onVerify={(code) => void handleVerify(code)} />

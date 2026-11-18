@@ -22,8 +22,9 @@ import {
   orderFormSchema,
   type OrderFormValues,
 } from "@medialane/ui";
-import { DURATION_OPTIONS } from "@/lib/constants";
+import { useDurationOptions } from "@/lib/use-duration-options";
 import { resolveImage } from "@/lib/utils";
+import { useT } from "@medialane/ui/i18n";
 
 type FormValues = OrderFormValues;
 
@@ -50,6 +51,8 @@ export function ListingDialog({
   quantityOwned,
   onSuccess,
 }: ListingDialogProps) {
+  const t = useT();
+  const durationOptions = useDurationOptions();
   const tokenImage = resolveImage(tokenImageRaw);
   const { tokenStandard: resolvedStandard, isResolving } = useResolvedTokenStandard(assetContract, tokenStandard);
   const is1155 = resolvedStandard === "ERC1155";
@@ -67,7 +70,7 @@ export function ListingDialog({
     if (is1155) {
       const qty = parseInt(values.amount ?? "", 10);
       if (!values.amount || isNaN(qty) || qty < 1) {
-        form.setError("amount", { message: "Enter a quantity of at least 1" });
+        form.setError("amount", { message: t("Enter a quantity of at least 1") });
         return;
       }
     }
@@ -101,25 +104,25 @@ export function ListingDialog({
       open={open}
       onOpenChange={handleClose}
       title={`Sell ${name}`}
-      description="Set pricing, quantity, currency, and duration to create an onchain marketplace listing."
+      description={t("Set pricing, quantity, currency, and duration to create an onchain marketplace listing.")}
     >
       <TransactionDialogStates
         phase={phase}
         asset={{ name, image: tokenImage }}
         txHash={txHash}
         error={error}
-        success={successMessages.listed({ name, price: listedPrice })}
-        successActions={[{ label: "Done", onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
+        success={successMessages.listed({ name, price: listedPrice }, t)}
+        successActions={[{ label: t("Done"), onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
         successChildren={<RewardEarned actionType="list_asset" />}
-        errorTitle="Listing failed"
-        errorDescription="The transaction was submitted, but the listing could not be completed."
+        errorTitle={t("Listing failed")}
+        errorDescription={t("The transaction was submitted, but the listing could not be completed.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >
         {!hasWallet ? (
           <DialogSignInGate
-            title="Secure your account to sell"
-            description="You need an account to sell assets."
+            title={t("Secure your account to sell")}
+            description={t("You need an account to sell assets.")}
           />
 
         ) : (
@@ -131,7 +134,7 @@ export function ListingDialog({
               badge={is1155 ? (
                 <span className="inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded-full border border-brand-purple/40 bg-brand-purple/15 text-brand-purple">
                   <Layers className="h-3 w-3" />
-                  Multi-edition
+                  {t("Multi-edition")}
                 </span>
               ) : undefined}
             />
@@ -142,7 +145,7 @@ export function ListingDialog({
 
                   <OrderFields
                     form={form}
-                    durationOptions={DURATION_OPTIONS}
+                    durationOptions={durationOptions}
                     busy={busy}
                     priceLabel={is1155 ? "Price per edition" : "Price"}
                     quantity={is1155 ? { owned: quantityOwned } : undefined}
@@ -153,12 +156,12 @@ export function ListingDialog({
                   <div className="pt-1 space-y-2">
                     <GradientButton type="submit" disabled={busy || isResolving}>
                       {isResolving ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> Resolving asset…</>
+                        <><Loader2 className="h-4 w-4 animate-spin" /> {t("Resolving asset…")}</>
                       ) : (
-                        <><Tag className="h-4 w-4" /> Sell</>
+                        <><Tag className="h-4 w-4" /> {t("Sell")}</>
                       )}
                     </GradientButton>
-                    <DialogNote>Listings are fully onchain and permissionless. Assets stay in the wallet until it settles.</DialogNote>
+                    <DialogNote>{t("Listings are fully onchain and permissionless. Assets stay in the wallet until it settles.")}</DialogNote>
                   </div>
 
                 </form>
