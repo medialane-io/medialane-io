@@ -23,6 +23,6 @@ describe("loadMessages", () => {
 
   test("a sentence missing in pt shows as written", async () => {
     const messages = await loadMessages("pt", { pt: async () => ({ Cancel: "Cancelar" }) });
-    expect(translate({ messages, text: "Remove" })).toBe("Remove");
+    expect(translate({ messages, text: "A sentence nobody translated" })).toBe("A sentence nobody translated");
   });
 });

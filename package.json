@@ -12,12 +12,13 @@
     "lint": "eslint .",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
-    "audit:dead-code": "bunx knip"
+    "audit:dead-code": "bunx knip",
+    "i18n:missing": "bun src/i18n/tools/missing.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@medialane/sdk": "0.234.0",
-    "@medialane/ui": "0.373.4",
+    "@medialane/ui": "0.374.0",
     "@next/third-parties": "^16.2.6",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
