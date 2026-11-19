@@ -7,15 +7,16 @@ import { ValuePropCarousel } from "@/components/connect/value-prop-carousel";
 import { OnboardingFlow, type OnboardingStep } from "@/components/connect/onboarding-flow";
 import { useRedirectWhenDone } from "@/hooks/use-redirect-when-done";
 import { safeRelativePath } from "@/lib/safe-redirect";
-import { useT } from "@medialane/ui/i18n";
+import { msg, useT } from "@medialane/ui/i18n";
 
-const TITLE = "Connect with your email";
+const TITLE = msg("Connect with your email");
 
 export default function ConnectPage() {
+  const t = useT();
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-8">
-        <Suspense fallback={<AccountCard title={TITLE} />}>
+        <Suspense fallback={<AccountCard title={t(TITLE)} />}>
           <ConnectContent />
         </Suspense>
       </div>

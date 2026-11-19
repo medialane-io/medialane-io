@@ -20,8 +20,8 @@ export default function MemecoinClaimPage() {
   return (
     <ClaimRouteShell
       icon={<Coins className="h-4 w-4 text-white" />}
-      title="Claim a Memecoin"
-      subtitle="Already launched a coin on Starknet? Add it so people can discover and trade it."
+      title={msg("Claim a memecoin")}
+      subtitle={msg("Already launched a coin on Starknet? Add it so people can discover and trade it.")}
       aside={<PageAside kind="claimMemecoin" />}
     >
       <ClaimGate>

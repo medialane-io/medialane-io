@@ -8,11 +8,11 @@ import { Button } from "@medialane/ui/button";
 import type { DeploymentStep } from "@medialane/sdk/starknet";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { mediaWallet } from "@/lib/wallet/client";
-import { useT } from "@medialane/ui/i18n";
+import { useT, msg } from "@medialane/ui/i18n";
 
 const STEP_LABEL: Record<DeploymentStep, string> = {
-  "creating-passkey": "Creating passkey…",
-  deploying: "Setting up the wallet…",
+  "creating-passkey": msg("Creating passkey…"),
+  deploying: msg("Setting up the wallet…"),
 };
 
 const WARNING =
@@ -81,7 +81,7 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
             </Button>
           </div>
         ) : step ? (
-          <MarketplaceProcessingState title={STEP_LABEL[step]} />
+          <MarketplaceProcessingState title={t(STEP_LABEL[step])} />
         ) : (
           <>
             <div className="flex flex-col items-center gap-3 px-6 pt-8">

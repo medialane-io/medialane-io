@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useT } from "@medialane/ui/i18n";
+import { msg, useT } from "@medialane/ui/i18n";
 
 const GENESIS_MINT_DATE = new Date("2026-03-27T00:00:00Z");
 
@@ -55,12 +55,12 @@ export function LaunchCountdown() {
 
     return (
       <div className="flex items-end gap-2 sm:gap-3">
-        {["Days", "Hours", "Mins", "Secs"].map((label, i) => (
+        {[msg("Days"), msg("Hours"), msg("Mins"), msg("Secs")].map((label, i) => (
           <div key={label} className="flex items-end gap-2 sm:gap-3">
             <div className="flex flex-col items-center gap-1.5">
               <div className="rounded-xl border border-white/10 bg-white/5 px-3 sm:px-4 py-2 sm:py-3 min-w-[3rem] sm:min-w-[3.75rem] h-[52px] sm:h-[60px] animate-pulse" />
               <span className="text-2xs sm:text-xs text-muted-foreground uppercase tracking-widest font-medium">
-                {label}
+                {t(label)}
               </span>
             </div>
             {i < 3 && (
