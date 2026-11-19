@@ -53,3 +53,11 @@ test("command ids are unique, so results cannot collide", () => {
   const ids = items.map((i) => i.id);
   expect(new Set(ids).size).toBe(ids.length);
 });
+
+test("the IP type links sit under Navigate and there is no separate Explore group", () => {
+  const headings = NAV_COMMANDS.map((group) => group.heading);
+  expect(headings).not.toContain("Explore");
+  const navigate = NAV_COMMANDS.find((group) => group.heading === "Navigate")!;
+  const labels = navigate.items.map((item) => item.label);
+  for (const type of ["Audio", "Art", "Video", "Photography", "Publications", "NFT"]) expect(labels).toContain(type);
+});

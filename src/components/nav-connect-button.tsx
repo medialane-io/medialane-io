@@ -15,7 +15,7 @@ export function NavConnectButton() {
 
   if (!hasWallet) {
     return (
-      <span className="flex shrink-0 items-center gap-2 text-2xs text-muted-foreground/50">
+      <span className="flex shrink-0 items-center">
         <div className="btn-border-animated rounded-lg p-[1px]">
           <Link
             href="/connect"
@@ -26,13 +26,12 @@ export function NavConnectButton() {
             {t("Connect")}
           </Link>
         </div>
-        <Kbd />
       </span>
     );
   }
 
   return (
-    <span className="flex shrink-0 items-center gap-2 text-2xs text-muted-foreground/50">
+    <span className="flex shrink-0 items-center">
       <button
         type="button"
         onClick={() => {
@@ -45,15 +44,6 @@ export function NavConnectButton() {
         <UserShieldIcon className="h-3 w-3 text-white" />
         {t("Connect")}
       </button>
-      <Kbd />
     </span>
-  );
-}
-
-function Kbd() {
-  return (
-    <kbd className="hidden min-w-[18px] items-center justify-center rounded-md bg-muted/60 px-1.5 py-0.5 font-sans text-2xs leading-none text-muted-foreground sm:inline-flex">
-      ⌘K
-    </kbd>
   );
 }

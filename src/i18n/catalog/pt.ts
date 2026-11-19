@@ -185,7 +185,6 @@ const pt: Catalog = {
   "Every real interaction with Medialane earns XP, and your total XP relative to everyone else's decides your share of each distribution. Signing up is enough to be included; everything below adds to the same running total. See your exact score on the {link} page.": "Toda interação real com a Medialane rende XP, e o seu XP total em relação ao de todos define a sua parte em cada distribuição. Cadastrar-se já basta para participar; tudo abaixo soma ao mesmo total. Veja sua pontuação exata na página de {link}.",
   "Everything is working": "Tudo funcionando",
   "Explain your counter price to the buyer…": "Explique ao comprador o valor da sua contraproposta…",
-  "Explore": "Explorar",
   "Explore the marketplace": "Explorar o marketplace",
   "Explore trending digital assets, collections, and creators on Medialane — Creator Launchpad + NFT Marketplace.": "Explore ativos digitais, coleções e criadores em alta na Medialane — Creator Launchpad + NFT Marketplace.",
   "Explore, share & trade": "Explore, compartilhe e negocie",
@@ -583,6 +582,7 @@ const pt: Catalog = {
   "{totalSupply} claimed": "{totalSupply} resgatados",
   "{verifyError}. Submit a request for our team to review.": "{verifyError}. Envie um pedido para a nossa equipe analisar.",
   "✓ Claim submitted — the Medialane DAO team will review it shortly.": "✓ Reivindicação enviada — a equipe da DAO da Medialane vai analisá-la em breve.",
+  "Start here": "Comece aqui",
 };
 
 export default pt;

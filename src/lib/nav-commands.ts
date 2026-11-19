@@ -13,6 +13,7 @@ export const NAV_COMMANDS = navGroups([
     items: [
       "collections", "coins", "rewards", "airdrop",
       { id: "claims", label: msg("Claims"), icon: FolderInput, href: "/claim", keywords: ["username", "reserve", "import", "collection name", "memecoin"] },
+      "audio", "art", "video", "photography", "publications", "nft",
       "settings",
     ],
   },
@@ -31,12 +32,6 @@ export const NAV_COMMANDS = navGroups([
     items: [
       "portfolio-collections", "portfolio-assets", "portfolio-listings", "portfolio-offers", "portfolio-received",
       "portfolio-activity",
-    ],
-  },
-  {
-    heading: msg("Explore"),
-    items: [
-      "audio", "art", "video", "photography", "publications", "nft",
     ],
   },
   {
