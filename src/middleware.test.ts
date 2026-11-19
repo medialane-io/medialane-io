@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { LOCALES } from "@medialane/ui/i18n";
 import { handleRequest } from "./middleware";
 
-const PT = [...LOCALES, { code: "pt", name: "Português", dir: "ltr" as const }];
+const PT = LOCALES;
 
 function request(path: string, headers: Record<string, string> = {}) {
   const { cookie, ...rest } = headers;
@@ -54,7 +54,7 @@ describe("language middleware", () => {
   });
 
   test("a language that is not offered is served in English", () => {
-    const response = handleRequest(request("/marketplace", { "accept-language": "pt" }));
+    const response = handleRequest(request("/marketplace", { "accept-language": "pt" }), LOCALES.filter((locale) => locale.code === "en"));
     expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost:3000/en/marketplace");
   });
 
