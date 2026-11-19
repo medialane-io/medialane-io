@@ -19,7 +19,7 @@ export default function ClaimUsernamePage() {
   return (
     <ClaimRouteShell
       icon={<AtSign className="h-4 w-4 text-white" />}
-      title="Claim your Username"
+      title={msg("Claim your username")}
       aside={<PageAside kind="claimUsername" />}
     >
       <ClaimGate>

@@ -1,5 +1,5 @@
 import { formatDeadline, type RowTone } from "./rows";
-import { msg } from "@medialane/ui/i18n";
+import { plainT, type T } from "@medialane/ui/i18n";
 
 export interface StatusInput {
   address: string | null;
@@ -25,47 +25,49 @@ export interface StatusLine {
 
 const shortAddress = (a: string): string => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
-function headline(input: StatusInput): StatusHeadline | null {
+function headline(input: StatusInput, t: T): StatusHeadline | null {
   const { email, walletDeployed } = input;
   if (email === null || walletDeployed === null) return null;
   if (!email.verified) {
-    const when = email.deadline ? ` by ${formatDeadline(email.deadline, "long")}` : "";
-    return { tone: "warn", text: `Confirm your email${when} to keep your account`, href: "/settings/email" };
+    const text = email.deadline
+      ? t("Confirm your email by {deadline} to keep your account", { deadline: formatDeadline(email.deadline, "long") })
+      : t("Confirm your email to keep your account");
+    return { tone: "warn", text, href: "/settings/email" };
   }
-  if (!walletDeployed) return { tone: "muted", text: "Your wallet is still setting up" };
-  return { tone: "ok", text: "Everything is working" };
+  if (!walletDeployed) return { tone: "muted", text: t("Your wallet is still setting up") };
+  return { tone: "ok", text: t("Everything is working") };
 }
 
-export function accountStatus(input: StatusInput): { headline: StatusHeadline | null; lines: StatusLine[] } {
+export function accountStatus(input: StatusInput, t: T = plainT): { headline: StatusHeadline | null; lines: StatusLine[] } {
   const { address, email, walletDeployed, devices, guardians } = input;
 
   const signin: StatusLine = {
     id: "signin",
-    label: msg("Sign-in"),
+    label: t("Sign-in"),
     value: email === null ? null : email.email,
-    note: email?.email ? (email.verified ? { text: "Confirmed", tone: "ok" } : { text: "Not confirmed", tone: "warn" }) : undefined,
+    note: email?.email ? (email.verified ? { text: t("Confirmed"), tone: "ok" } : { text: t("Not confirmed"), tone: "warn" }) : undefined,
   };
 
   const wallet: StatusLine = {
     id: "wallet",
-    label: msg("Wallet"),
+    label: t("Wallet"),
     value: address && walletDeployed !== null ? shortAddress(address) : null,
     note:
-      walletDeployed === null ? undefined : walletDeployed ? { text: "Live onchain", tone: "ok" } : { text: "Setting up", tone: "muted" },
+      walletDeployed === null ? undefined : walletDeployed ? { text: t("Live onchain"), tone: "ok" } : { text: t("Setting up"), tone: "muted" },
   };
 
   const deviceLine: StatusLine = {
     id: "devices",
-    label: msg("Devices"),
-    value: devices === null ? null : `${devices} signing device${devices === 1 ? "" : "s"}`,
+    label: t("Devices"),
+    value: devices === null ? null : t.plural("{count} signing device", "{count} signing devices", devices),
   };
 
   const recovery: StatusLine = {
     id: "recovery",
-    label: msg("Recovery"),
-    value: guardians === null ? null : guardians > 0 ? "Guardian set" : "Not set up",
-    action: guardians === 0 ? { label: msg("Set up"), href: "/settings/recovery" } : undefined,
+    label: t("Recovery"),
+    value: guardians === null ? null : guardians > 0 ? t("Guardian set") : t("Not set up"),
+    action: guardians === 0 ? { label: t("Set up"), href: "/settings/recovery" } : undefined,
   };
 
-  return { headline: headline(input), lines: [signin, wallet, deviceLine, recovery] };
+  return { headline: headline(input, t), lines: [signin, wallet, deviceLine, recovery] };
 }

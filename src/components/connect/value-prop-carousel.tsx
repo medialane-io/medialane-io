@@ -6,7 +6,7 @@ import {
   ShieldCheck, Radio, Zap, Shuffle, Package, Gem, Fingerprint, Rocket,
   ShoppingBag, type LucideIcon,
 } from "lucide-react";
-import { msg } from "@medialane/ui/i18n";
+import { msg, useT } from "@medialane/ui/i18n";
 
 const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
   { label: msg("Own your work"), icon: Award },
@@ -29,6 +29,7 @@ const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
 ];
 
 function Track({ hidden }: { hidden?: boolean }) {
+  const t = useT();
   return (
     <div
       className="flex shrink-0 gap-4"
@@ -41,7 +42,7 @@ function Track({ hidden }: { hidden?: boolean }) {
           className="flex aspect-[3/4] w-[200px] shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 bg-card/50 p-6 text-center"
         >
           <Icon className="h-7 w-7 text-primary" />
-          <span className="text-sm font-medium text-foreground">{label}</span>
+          <span className="text-sm font-medium text-foreground">{t(label)}</span>
         </div>
       ))}
     </div>

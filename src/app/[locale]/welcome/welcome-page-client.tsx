@@ -84,12 +84,12 @@ function OnboardingBanner({
   const t = useT();
   const minted = Boolean(holding?.owned);
   const steps = [
-    { done: true, label: t("Account created"), sub: "Secured with a passkey" },
-    { done: true, label: t("Account secured"), sub: "MediaWallet on Starknet" },
+    { done: true, label: t("Account created"), sub: t("Secured with a passkey") },
+    { done: true, label: t("Account secured"), sub: t("MediaWallet on Starknet") },
     {
       done: minted,
       label: minted ? "Genesis NFT minted" : "Genesis NFT",
-      sub: minted ? null : "Claim your welcome gift below",
+      sub: minted ? null : t("Claim your welcome gift below"),
       tokenId: holding?.tokenId ?? null,
     },
   ];

@@ -47,13 +47,14 @@ function GenesisNftCard({ minted = false }: { minted?: boolean }) {
 }
 
 const PERKS = [
-  { icon: Gift, label: msg("Free to mint"), sub: "Zero protocol fees" },
-  { icon: Zap, label: msg("Self-custody"), sub: "Secured by your passkey" },
-  { icon: Droplets, label: msg("Airdrop passport"), sub: "Future distribution" },
-  { icon: Shield, label: msg("Programmable IP"), sub: "Immutable ownership" },
+  { icon: Gift, label: msg("Free to mint"), sub: msg("Zero protocol fees") },
+  { icon: Zap, label: msg("Self-custody"), sub: msg("Secured by your passkey") },
+  { icon: Droplets, label: msg("Airdrop passport"), sub: msg("Future distribution") },
+  { icon: Shield, label: msg("Programmable IP"), sub: msg("Immutable ownership") },
 ];
 
 function PerksGrid() {
+  const t = useT();
   return (
     <div className="grid grid-cols-2 gap-2.5">
       {PERKS.map(({ icon: Icon, label, sub }) => (
@@ -65,8 +66,8 @@ function PerksGrid() {
             <Icon className="h-3.5 w-3.5 text-primary" />
           </div>
           <div>
-            <p className="text-xs font-semibold leading-tight">{label}</p>
-            <p className="text-2xs text-muted-foreground leading-snug mt-0.5">{sub}</p>
+            <p className="text-xs font-semibold leading-tight">{t(label)}</p>
+            <p className="text-2xs text-muted-foreground leading-snug mt-0.5">{t(sub)}</p>
           </div>
         </div>
       ))}
@@ -75,10 +76,10 @@ function PerksGrid() {
 }
 
 const MESSAGES = {
-  preparing: "Preparing your NFT…",
-  submitting: "Submitting transaction…",
+  preparing: msg("Preparing your NFT…"),
+  submitting: msg("Submitting transaction…"),
   noAccount: ACCOUNT_NOT_READY,
-  notStarted: "Mint contract not configured.",
+  notStarted: msg("Mint contract not configured."),
 };
 
 export function LaunchMint() {
@@ -184,7 +185,7 @@ export function LaunchMint() {
                       <div>
                         <p className="font-semibold">{t("Minting your Genesis NFT…")}</p>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          {statusMsg || t("Please wait…")}
+                          {statusMsg ? t(statusMsg) : t("Please wait…")}
                         </p>
                       </div>
                     </div>
@@ -200,7 +201,7 @@ export function LaunchMint() {
                           ) : (
                             <div className="h-3.5 w-3.5 rounded-full border border-muted-foreground/30" />
                           )}
-                          <span className={done ? "text-foreground" : ""}>{label}</span>
+                          <span className={done ? "text-foreground" : ""}>{t(label)}</span>
                         </div>
                       ))}
                     </div>
@@ -287,7 +288,7 @@ export function LaunchMint() {
                           <p className="font-semibold text-sm">{t("Mint failed")}</p>
                           {error && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {error}
+                              {t(error)}
                             </p>
                           )}
                         </div>

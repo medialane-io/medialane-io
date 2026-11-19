@@ -39,8 +39,8 @@ export default function ConfirmEmailContent() {
 
   const view = {
     confirming: { icon: <Loader2 className="h-6 w-6 animate-spin text-primary" />, title: t("Confirming your email…"), body: "" },
-    confirmed: { icon: <CheckCircle2 className="h-6 w-6 text-emerald-500" />, title: t("You're all set"), body: "Your email is confirmed. Taking you to Medialane…" },
-    invalid: { icon: <MailWarning className="h-6 w-6 text-primary" />, title: t("This link has expired"), body: "Please sign up again to get a new one." },
+    confirmed: { icon: <CheckCircle2 className="h-6 w-6 text-emerald-500" />, title: t("You're all set"), body: t("Your email is confirmed. Taking you to Medialane…") },
+    invalid: { icon: <MailWarning className="h-6 w-6 text-primary" />, title: t("This link has expired"), body: t("Please sign up again to get a new one.") },
   }[step];
 
   return (

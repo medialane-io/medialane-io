@@ -95,22 +95,22 @@ const POP_FEATURES = [
   {
     icon: Award,
     title: msg("Soulbound Credential"),
-    desc: "Non-transferable — permanently tied to your account onchain.",
+    desc: msg("Non-transferable — permanently tied to your account onchain."),
   },
   {
     icon: Users,
     title: msg("One per address"),
-    desc: "Each participant claims exactly one credential per event.",
+    desc: msg("Each participant claims exactly one credential per event."),
   },
   {
     icon: Zap,
     title: msg("Free to claim"),
-    desc: "No protocol fee — participants claim one credential per event.",
+    desc: msg("No protocol fee — participants claim one credential per event."),
   },
   {
     icon: ShieldCheck,
     title: msg("Verifiable onchain"),
-    desc: "Credentials are permanently readable and provable onchain.",
+    desc: msg("Credentials are permanently readable and provable onchain."),
   },
 ];
 
@@ -157,8 +157,8 @@ export function PopContent() {
             {POP_FEATURES.map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bento-cell p-4 space-y-2">
                 <Icon className="h-5 w-5 text-green-500" />
-                <p className="text-sm font-semibold leading-tight">{title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                <p className="text-sm font-semibold leading-tight">{t(title)}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t(desc)}</p>
               </div>
             ))}
           </div>

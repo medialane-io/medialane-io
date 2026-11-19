@@ -9,6 +9,7 @@ import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useGenesisMint, type GenesisMintMessages } from "@/hooks/use-genesis-mint";
 import { assetHref } from "@/lib/routes";
 import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
+import { useT } from "@medialane/ui/i18n";
 
 export interface GenesisMintCopy extends GenesisMintMessages {
   ready: string;
@@ -32,6 +33,7 @@ interface GenesisMintCardProps {
 }
 
 export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
+  const t = useT();
   const { hasWallet, address, isDeployed } = useWalletNativeSession();
   const { step, error, statusMsg, txHash, tokenId, phase, start, retry, mintAnother } = useGenesisMint({
     address: address ?? null,
@@ -50,11 +52,11 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{copy.ready}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{t(copy.ready)}</span>
           </div>
           <GradientButton big onClick={start} disabled={!MINT_CONTRACT}>
             <Sparkles className="h-4 w-4" />
-            {MINT_CONTRACT ? copy.claim : copy.claimUnavailable}
+            {MINT_CONTRACT ? t(copy.claim) : t(copy.claimUnavailable)}
           </GradientButton>
         </div>
       )}
@@ -64,15 +66,15 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
           <div className="flex items-center gap-3">
             <Loader2 className="h-6 w-6 animate-spin text-primary shrink-0" />
             <div>
-              <p className="font-semibold text-sm">{copy.working}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{statusMsg || copy.wait}</p>
+              <p className="font-semibold text-sm">{t(copy.working)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{statusMsg ? t(statusMsg) : t(copy.wait)}</p>
             </div>
           </div>
           <div className="space-y-1.5 pl-9">
             {copy.steps.map((label, i) => (
               <div key={label} className="flex items-center gap-2 text-xs text-muted-foreground">
                 {done[i] ? <CheckCircle2 className="h-3 w-3 text-emerald-500" /> : <div className="h-3 w-3 rounded-full border border-muted-foreground/30" />}
-                <span className={done[i] ? "text-foreground" : ""}>{label}</span>
+                <span className={done[i] ? "text-foreground" : ""}>{t(label)}</span>
               </div>
             ))}
           </div>
@@ -86,8 +88,8 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />
             </div>
             <div>
-              <p className="font-bold text-emerald-600 dark:text-emerald-300">{copy.successTitle}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{copy.successBody}</p>
+              <p className="font-bold text-emerald-600 dark:text-emerald-300">{t(copy.successTitle)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(copy.successBody)}</p>
             </div>
           </div>
           {txHash ? (
@@ -111,14 +113,14 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
           ) : null}
           <div className="flex flex-col sm:flex-row gap-2">
             <Button size="sm" asChild className="flex-1">
-              <Link href="/launchpad/single-editions">{copy.create}</Link>
+              <Link href="/launchpad/single-editions">{t(copy.create)}</Link>
             </Button>
             <Button size="sm" variant="outline" asChild className="flex-1">
-              <Link href="/marketplace">{copy.explore}</Link>
+              <Link href="/marketplace">{t(copy.explore)}</Link>
             </Button>
           </div>
           <button className="text-xs text-muted-foreground underline underline-offset-2 w-full text-center" onClick={mintAnother}>
-            {copy.again}
+            {t(copy.again)}
           </button>
         </div>
       )}
@@ -128,12 +130,12 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
           <div className="flex items-start gap-3">
             <XCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-sm">{copy.failedTitle}</p>
-              {error && <p className="text-xs text-muted-foreground mt-0.5">{error}</p>}
+              <p className="font-semibold text-sm">{t(copy.failedTitle)}</p>
+              {error && <p className="text-xs text-muted-foreground mt-0.5">{t(error)}</p>}
             </div>
           </div>
           <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
-            <RefreshCw className="h-3.5 w-3.5" /> {copy.retry}
+            <RefreshCw className="h-3.5 w-3.5" /> {t(copy.retry)}
           </Button>
         </div>
       )}

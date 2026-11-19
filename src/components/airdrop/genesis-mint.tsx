@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { GenesisMintCard, type GenesisMintCopy } from "@/components/genesis-mint-card";
-import { useT } from "@medialane/ui/i18n";
+import { useT, msg } from "@medialane/ui/i18n";
 
 export function AirdropEventCard() {
   const t = useT();
@@ -37,34 +37,35 @@ export function AirdropEventCard() {
 }
 
 const COPY: GenesisMintCopy = {
-  preparing: "Preparing your record…",
-  submitting: "Confirming participation…",
-  noAccount: "Account not found. Please try again.",
-  notStarted: "Airdrop has not started yet.",
-  ready: "Account active, mint your passport",
-  claim: "Claim my spot",
-  claimUnavailable: "Airdrop not started yet",
-  working: "Registering your participation…",
-  wait: "Please wait…",
-  steps: ["Preparing your record", "Submitting", "Confirmed"],
-  successTitle: "You're in!",
-  successBody: "Your participation is confirmed.",
+  preparing: msg("Preparing your record…"),
+  submitting: msg("Confirming participation…"),
+  noAccount: msg("Account not found. Please try again."),
+  notStarted: msg("Airdrop has not started yet."),
+  ready: msg("Account active, mint your passport"),
+  claim: msg("Claim my spot"),
+  claimUnavailable: msg("Airdrop not started yet"),
+  working: msg("Registering your participation…"),
+  wait: msg("Please wait…"),
+  steps: [msg("Preparing your record"), "Submitting", "Confirmed"],
+  successTitle: msg("You're in!"),
+  successBody: msg("Your participation is confirmed."),
   create: "Create",
   explore: "Explore",
-  again: "Didn't mint your passport? Try again",
-  failedTitle: "Could not complete",
-  retry: "Try again",
+  again: msg("Didn't mint your passport? Try again"),
+  failedTitle: msg("Could not complete"),
+  retry: msg("Try again"),
 };
 
-const SIGNED_OUT = (
-  <div className="w-full max-w-sm space-y-2.5">
-    <OnboardingFlow />
-    <p className="text-xs text-muted-foreground">
-      Takes about 10 seconds.
-    </p>
-  </div>
-);
+function SignedOut() {
+  const t = useT();
+  return (
+    <div className="w-full max-w-sm space-y-2.5">
+      <OnboardingFlow />
+      <p className="text-xs text-muted-foreground">{t("Takes about 10 seconds.")}</p>
+    </div>
+  );
+}
 
 export function GenesisMint() {
-  return <GenesisMintCard copy={COPY} signedOut={SIGNED_OUT} />;
+  return <GenesisMintCard copy={COPY} signedOut={<SignedOut />} />;
 }

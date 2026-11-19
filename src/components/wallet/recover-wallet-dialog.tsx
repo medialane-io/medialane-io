@@ -13,13 +13,13 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { isOwnerOf } from "@/lib/wallet/devices";
 import { sealImportedOwnerKey } from "@/lib/wallet/passkey";
 import { notifyWalletChange, saveSealedOwner } from "@/lib/wallet/store";
-import { useT } from "@medialane/ui/i18n";
+import { useT, msg } from "@medialane/ui/i18n";
 
 type Step = "creating-passkey" | "securing";
 
 const STEP_LABEL: Record<Step, string> = {
-  "creating-passkey": "Creating passkey…",
-  securing: "Setting up the wallet…",
+  "creating-passkey": msg("Creating passkey…"),
+  securing: msg("Setting up the wallet…"),
 };
 
 const WARNING =
@@ -118,7 +118,7 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
             </Button>
           </div>
         ) : step ? (
-          <MarketplaceProcessingState title={STEP_LABEL[step]} />
+          <MarketplaceProcessingState title={t(STEP_LABEL[step])} />
         ) : (
           <>
             <div className="flex flex-col items-center gap-3 px-6 pt-8">

@@ -21,7 +21,7 @@ const DOT: Record<RowTone, string> = {
 
 export function AccountStatus(props: StatusInput) {
   const t = useT();
-  const { headline, lines } = accountStatus(props);
+  const { headline, lines } = accountStatus(props, t);
 
   const headlineBody = headline ? (
     <span className="flex items-center gap-2">
