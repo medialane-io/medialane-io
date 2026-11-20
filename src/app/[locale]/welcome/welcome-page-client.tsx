@@ -268,7 +268,7 @@ export function WelcomePageClient() {
                   </Link>
                 )}
               </div>
-              <Button size="sm" variant="outline" asChild className="shrink-0">
+              <Button size="sm" variant="soft" asChild className="shrink-0">
                 <Link href="/portfolio/assets">{t("View in portfolio")}</Link>
               </Button>
             </div>

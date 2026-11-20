@@ -24,7 +24,7 @@ export default function NotFound() {
             {t("Start")}
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="soft" asChild>
           <Link href="/marketplace">
             <Store className="h-4 w-4 mr-2" />
             {t("Marketplace")}

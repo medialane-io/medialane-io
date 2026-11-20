@@ -35,17 +35,17 @@ export default function WalletSettingsPage() {
               <>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <AddressDisplay address={address} chars={33} showCopy className="break-all" />
-                  <Badge variant="outline" className="text-2xs">
+                  <Badge variant="soft" className="text-2xs">
                     Starknet
                   </Badge>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button onClick={() => openWalletPanel()} variant="outline" size="sm">
+                  <Button onClick={() => openWalletPanel()} variant="soft" size="sm">
                     <Wallet className="mr-1.5 h-3.5 w-3.5" />
                     {t("Open wallet")}
                   </Button>
-                  <Button asChild variant="outline" size="sm">
+                  <Button asChild variant="soft" size="sm">
                     <a href={`${EXPLORER_URL}/contract/${address}`} target="_blank" rel="noopener noreferrer">
                       {t("View on Voyager")}
                       <ArrowUpRight className="ml-1.5 h-3.5 w-3.5" />
@@ -62,7 +62,7 @@ export default function WalletSettingsPage() {
                 loadSealed={loadSealedOwner}
                 unlock={unlockOwnerKey}
                 actions={
-                  <Button asChild variant="outline" size="sm">
+                  <Button asChild variant="soft" size="sm">
                     <Link href="/settings/recovery">
                       <LifeBuoy className="mr-1.5 h-3.5 w-3.5" />
                       {t("Recovery options")}

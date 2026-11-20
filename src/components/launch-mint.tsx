@@ -293,7 +293,7 @@ export function LaunchMint() {
                           )}
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
+                      <Button size="sm" variant="soft" className="gap-2" onClick={retry}>
                         <RefreshCw className="h-3.5 w-3.5" />
                         {t("Try again")}
                       </Button>

@@ -26,7 +26,7 @@ function OptionButton({
   const id = useId();
   return (
     <Button
-      variant={primary ? "default" : "outline"}
+      variant={primary ? "default" : "soft"}
       className="h-auto w-full justify-start whitespace-normal px-4 py-3 text-left"
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}
@@ -110,7 +110,7 @@ export function NewBrowserWallet({
             {t("This account gets a fresh wallet. The current wallet's contents won't show up in the new one automatically.")}
           </p>
         </div>
-        <Button variant="outline" className={OPTION_CLASS} onClick={onStartNew}>
+        <Button variant="soft" className={OPTION_CLASS} onClick={onStartNew}>
           {t("Start a new wallet")}
         </Button>
         <Button variant="ghost" className="w-full" onClick={back}>

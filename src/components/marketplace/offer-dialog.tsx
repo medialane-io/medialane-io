@@ -17,7 +17,7 @@ import {
   successMessages,
   MarketplaceDialogHero,
   OrderFields,
-  GradientButton,
+  ActionButton,
   orderFormSchema,
   type OrderFormValues,
 } from "@medialane/ui";
@@ -174,10 +174,10 @@ export function OfferDialog({
                   <DialogErrorAlert error={error} />
 
                   <div className="pt-1 space-y-2">
-                    <GradientButton type="submit" disabled={busy}>
+                    <ActionButton solid className="w-full" type="submit" disabled={busy}>
                       <HandCoins className="h-4 w-4" />
                       {t("Submit offer")}
-                    </GradientButton>
+                    </ActionButton>
                     <DialogNote>{t("Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.")}</DialogNote>
                   </div>
 

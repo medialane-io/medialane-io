@@ -1,6 +1,6 @@
 "use client";
 
-import { ServiceFormShell, cn } from "@medialane/ui";
+import { ServiceFormShell, cn, ActionButton } from "@medialane/ui";
 import Link from "@medialane/ui/link";
 import type { ElementType, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Settings as SettingsIcon, Wallet } from "lucide-react";
@@ -55,14 +55,9 @@ export function SettingsGate({ children }: { children: ReactNode }) {
       <Wallet className="mx-auto h-12 w-12 text-muted-foreground" />
       <h1 className="text-2xl font-bold">{t("Secure your account")}</h1>
       <p className="mx-auto max-w-sm text-muted-foreground">{t("Secure your account to manage your creator settings.")}</p>
-      <div className="btn-border-animated inline-block rounded-lg p-[1px]">
-        <Button
-          asChild
-          className="rounded-[7px] bg-transparent text-white transition-all hover:bg-transparent hover:brightness-110 active:scale-[0.98]"
-        >
-          <Link href="/connect?redirect_url=/settings">{t("Get started")}</Link>
-        </Button>
-      </div>
+      <ActionButton solid asChild>
+        <Link href="/connect?redirect_url=/settings">{t("Get started")}</Link>
+      </ActionButton>
     </div>
   );
 }

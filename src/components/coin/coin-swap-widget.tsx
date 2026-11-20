@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "@medialane/ui/link";
 import { Loader2, Wallet } from "lucide-react";
 import { getTokenBySymbol, parseAmount, formatAmount } from "@medialane/sdk";
-import { GradientButton, useSwapQuote, useTransaction, cn } from "@medialane/ui";
+import { ActionButton, useSwapQuote, useTransaction, cn } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useErc20Balance, useTokenBalance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
@@ -157,7 +157,8 @@ export function CoinSwapWidget({
         </p>
       )}
 
-      <GradientButton
+      <ActionButton
+        solid
         onClick={action.phase === "success" ? action.reset : submit}
         disabled={action.phase === "success" ? false : !ready || busy}
         className="w-full"
@@ -171,7 +172,7 @@ export function CoinSwapWidget({
         ) : (
           `${side === "buy" ? "Buy" : "Sell"} ${coinSymbol}`
         )}
-      </GradientButton>
+      </ActionButton>
     </div>
   );
 }

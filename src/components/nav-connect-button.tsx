@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "@medialane/ui/link";
-import { useNavCommandMenu } from "@medialane/ui";
+import { useNavCommandMenu, ActionButton } from "@medialane/ui";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useMediaWallet } from "@medialane/ui";
 import { UserShieldIcon } from "@/components/icons/user-shield-icon";
@@ -16,16 +16,12 @@ export function NavConnectButton() {
   if (!hasWallet) {
     return (
       <span className="flex shrink-0 items-center gap-2.5 text-2xs text-muted-foreground/50">
-        <div className="btn-border-animated rounded-lg p-[1px]">
-          <Link
-            href="/connect"
-            onClick={closeMenu}
-            className="flex items-center gap-2 rounded-[7px] bg-transparent px-4 py-2 text-xs font-semibold text-white transition-all hover:brightness-110 active:scale-[0.98]"
-          >
+        <ActionButton solid small asChild>
+          <Link href="/connect" onClick={closeMenu}>
             <UserShieldIcon className="h-3.5 w-3.5" />
             {t("Connect")}
           </Link>
-        </div>
+        </ActionButton>
         <Kbd />
       </span>
     );

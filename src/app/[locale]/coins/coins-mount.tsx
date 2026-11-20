@@ -2,7 +2,7 @@
 
 import { useRouter } from "@medialane/ui/router";
 import Link from "@medialane/ui/link";
-import { CoinsExplorer, GradientButton, Button } from "@medialane/ui";
+import { CoinsExplorer, ActionButton, Button } from "@medialane/ui";
 import { useCoinsAdapter, useCoinPriceAdapter, usePriceMapAdapter, coinHref } from "@/lib/coin-adapters";
 import { useT } from "@medialane/ui/i18n";
 
@@ -19,15 +19,12 @@ export function CoinsMount({ heading = true }: { heading?: boolean }) {
       heading={heading}
       action={
         <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
+          <Button asChild variant="soft">
             <Link href="/claim/memecoin">{t("Claim a coin")}</Link>
           </Button>
-          <GradientButton
-            wrapperClassName="w-auto shrink-0"
-            onClick={() => router.push("/launchpad/coin/create")}
-          >
+          <ActionButton solid className="shrink-0" onClick={() => router.push("/launchpad/coin/create")}>
             {t("Launch a coin")}
-          </GradientButton>
+          </ActionButton>
         </div>
       }
     />

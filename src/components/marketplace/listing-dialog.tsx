@@ -18,7 +18,7 @@ import {
   successMessages,
   ListingAssetSummary,
   OrderFields,
-  GradientButton,
+  ActionButton,
   orderFormSchema,
   type OrderFormValues,
 } from "@medialane/ui";
@@ -154,13 +154,13 @@ export function ListingDialog({
                   <DialogErrorAlert error={error} />
 
                   <div className="pt-1 space-y-2">
-                    <GradientButton type="submit" disabled={busy || isResolving}>
+                    <ActionButton solid className="w-full" type="submit" disabled={busy || isResolving}>
                       {isResolving ? (
                         <><Loader2 className="h-4 w-4 animate-spin" /> {t("Resolving asset…")}</>
                       ) : (
                         <><Tag className="h-4 w-4" /> {t("Sell")}</>
                       )}
-                    </GradientButton>
+                    </ActionButton>
                     <DialogNote>{t("Listings are fully onchain and permissionless. Assets stay in the wallet until it settles.")}</DialogNote>
                   </div>
 

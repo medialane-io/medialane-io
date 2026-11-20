@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "@medialane/ui/link";
-import { GradientButton } from "@medialane/ui";
+import { ActionButton } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import { Sparkles, ExternalLink, CheckCircle2, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -54,10 +54,10 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">{t(copy.ready)}</span>
           </div>
-          <GradientButton big onClick={start} disabled={!MINT_CONTRACT}>
+          <ActionButton solid big onClick={start} disabled={!MINT_CONTRACT} className="w-full">
             <Sparkles className="h-4 w-4" />
             {MINT_CONTRACT ? t(copy.claim) : t(copy.claimUnavailable)}
-          </GradientButton>
+          </ActionButton>
         </div>
       )}
 
@@ -115,7 +115,7 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
             <Button size="sm" asChild className="flex-1">
               <Link href="/launchpad/single-editions">{t(copy.create)}</Link>
             </Button>
-            <Button size="sm" variant="outline" asChild className="flex-1">
+            <Button size="sm" variant="soft" asChild className="flex-1">
               <Link href="/marketplace">{t(copy.explore)}</Link>
             </Button>
           </div>
@@ -134,7 +134,7 @@ export function GenesisMintCard({ copy, signedOut }: GenesisMintCardProps) {
               {error && <p className="text-xs text-muted-foreground mt-0.5">{t(error)}</p>}
             </div>
           </div>
-          <Button size="sm" variant="outline" className="gap-2" onClick={retry}>
+          <Button size="sm" variant="soft" className="gap-2" onClick={retry}>
             <RefreshCw className="h-3.5 w-3.5" /> {t(copy.retry)}
           </Button>
         </div>

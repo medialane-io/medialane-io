@@ -1,6 +1,6 @@
 "use client";
 
-import { EmailCodeEntry, describeError } from "@medialane/ui";
+import { EmailCodeEntry, describeError, ActionButton } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "@medialane/ui/router";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
@@ -100,15 +100,9 @@ export default function VerifyEmailContent() {
             <CardDescription>{t("Your email is confirmed. Your account is fully unrestricted.")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="btn-border-animated w-full rounded-lg p-[1px]">
-              <Button
-                className="w-full rounded-[7px] bg-transparent text-white transition-all hover:bg-transparent hover:brightness-110 active:scale-[0.98]"
-                size="lg"
-                onClick={() => router.back()}
-              >
-                {t("Done")}
-              </Button>
-            </div>
+            <ActionButton solid onClick={() => router.back()} className="w-full">
+              {t("Done")}
+            </ActionButton>
           </CardContent>
         </Card>
       </div>
@@ -144,16 +138,9 @@ export default function VerifyEmailContent() {
               autoFocus
               className="w-full"
             />
-            <div className="btn-border-animated w-full rounded-lg p-[1px]">
-              <Button
-                className="w-full rounded-[7px] bg-transparent text-white transition-all hover:bg-transparent hover:brightness-110 active:scale-[0.98]"
-                size="lg"
-                onClick={handleAddEmail}
-                disabled={!emailInput.trim()}
-              >
-                {t("Send code")}
-              </Button>
-            </div>
+            <ActionButton solid onClick={handleAddEmail} disabled={!emailInput.trim()} className="w-full">
+              {t("Send code")}
+            </ActionButton>
           </CardContent>
         </Card>
       </div>

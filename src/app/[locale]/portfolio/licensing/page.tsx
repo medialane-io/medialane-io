@@ -93,7 +93,7 @@ export default function PortfolioLicensingPage() {
                   </div>
                 )}
                 {offer.status === "APPROVED" && offer.remixContract && offer.remixTokenId && (
-                  <Button size="sm" variant="outline" asChild>
+                  <Button size="sm" variant="soft" asChild>
                     <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>{t("View remix")}</Link>
                   </Button>
                 )}
@@ -139,7 +139,7 @@ export default function PortfolioLicensingPage() {
                   </div>
                 </div>
                 {(offer.status === "APPROVED" || offer.status === "COMPLETED") && offer.remixContract && offer.remixTokenId && (
-                  <Button size="sm" variant="outline" asChild>
+                  <Button size="sm" variant="soft" asChild>
                     <Link href={assetHref("STARKNET", offer.remixContract, offer.remixTokenId)}>
                       <GitBranch className="h-3.5 w-3.5 mr-1" />
                       {offer.status === "APPROVED" ? t("Buy remix") : t("View remix")}
