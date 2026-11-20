@@ -23,6 +23,7 @@ import { EXPLORER_URL, MINT_CONTRACT } from "@/lib/constants";
 import { LaunchCountdown } from "./launch-countdown";
 import { useGenesisMint } from "@/hooks/use-genesis-mint";
 import { useT, msg } from "@medialane/ui/i18n";
+import { IconTile } from "@medialane/ui";
 
 function GenesisNftCard({ minted = false }: { minted?: boolean }) {
   const t = useT();
@@ -62,9 +63,9 @@ function PerksGrid() {
           key={label}
           className="flex items-start gap-2.5 rounded-xl border border-border/60 bg-muted/20 p-3 hover:border-primary/30 transition-colors"
         >
-          <div className="mt-0.5 h-7 w-7 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="h-3.5 w-3.5 text-primary" />
-          </div>
+          <IconTile size="sm" className="mt-0.5">
+            <Icon />
+          </IconTile>
           <div>
             <p className="text-xs font-semibold leading-tight">{t(label)}</p>
             <p className="text-2xs text-muted-foreground leading-snug mt-0.5">{t(sub)}</p>

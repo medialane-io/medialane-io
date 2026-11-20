@@ -26,8 +26,6 @@ export default function WalletSettingsPage() {
         <SettingsPage title={t("Wallet")} subtitle={t("Account secured onchain")} icon={<Wallet className="h-4 w-4 text-white" />}>
           <AccountSection
             icon={Wallet}
-            iconColor="text-violet-600 dark:text-violet-400"
-            iconBg="bg-violet-500/10"
             title={t("Media Wallet")}
             description={t("Account secured with immutable smart contracts and self-custodial wallet.")}
           >
@@ -75,8 +73,7 @@ export default function WalletSettingsPage() {
 
           <AccountSection
             icon={RefreshCw}
-            iconColor="text-destructive"
-            iconBg="bg-destructive/10"
+            destructive
             title={t("Generate new wallet")}
             description={t("This replaces the active wallet on this account. Assets in the current wallet can be moved first.")}
           >

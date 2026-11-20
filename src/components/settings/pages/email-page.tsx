@@ -52,8 +52,6 @@ export default function EmailSettingsPage() {
       <SettingsPage title={t("Email")} subtitle={t("Used for account notices and signing back in.")} icon={<Mail className="h-4 w-4 text-white" />}>
         <AccountSection
           icon={Mail}
-          iconColor="text-blue-600 dark:text-blue-400"
-          iconBg="bg-blue-500/10"
           title={t("Email")}
           description={t("Used for account notices and signing back in.")}
         >

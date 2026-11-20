@@ -12,26 +12,21 @@ import {
 } from "lucide-react";
 import { GenesisMint, AirdropEventCard } from "@/components/airdrop/genesis-mint";
 import { msg, useT } from "@medialane/ui/i18n";
+import { IconTile } from "@medialane/ui";
 
 const EARN_GROUPS = [
   {
     icon: FileCheck,
-    color: "text-brand-blue",
-    bg: "bg-brand-blue/10",
     title: msg("Get started"),
     desc: msg("Sign up with your email. You're included from that point on, and it's the only requirement."),
   },
   {
     icon: Coins,
-    color: "text-brand-orange",
-    bg: "bg-brand-orange/10",
     title: msg("Create"),
     desc: msg("Mint, publish, launch collections or drops. Each action adds to your XP."),
   },
   {
     icon: Star,
-    color: "text-brand-purple",
-    bg: "bg-brand-purple/10",
     title: msg("Trade and engage"),
     desc: msg("Buy, sell, make offers, collaborate. This adds to the same XP total too."),
   },
@@ -75,11 +70,11 @@ export function AirdropContent() {
             </Link> })}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6">
-          {EARN_GROUPS.map(({ icon: Icon, color, bg, title, desc }) => (
+          {EARN_GROUPS.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="flex flex-col gap-3">
-              <div className={`h-12 w-12 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                <Icon className={`h-6 w-6 ${color}`} />
-              </div>
+              <IconTile>
+                <Icon />
+              </IconTile>
               <p className="font-bold text-lg">{t(title)}</p>
               <p className="text-base text-muted-foreground leading-relaxed">{t(desc)}</p>
             </div>

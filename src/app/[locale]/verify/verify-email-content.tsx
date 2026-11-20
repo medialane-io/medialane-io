@@ -1,6 +1,6 @@
 "use client";
 
-import { EmailCodeEntry, describeError, ActionButton } from "@medialane/ui";
+import { EmailCodeEntry, describeError, ActionButton, IconTile } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "@medialane/ui/router";
 import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
@@ -115,9 +115,9 @@ export default function VerifyEmailContent() {
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
             <div className="mb-2 flex justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Mail className="h-6 w-6 text-primary" />
-              </div>
+              <IconTile>
+                <Mail />
+              </IconTile>
             </div>
             <CardTitle>{t("Add your email")}</CardTitle>
             <CardDescription>{t("We'll send a 6-digit code to confirm it's yours.")}</CardDescription>
@@ -152,9 +152,9 @@ export default function VerifyEmailContent() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mb-2 flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-            </div>
+            <IconTile>
+              <ShieldCheck />
+            </IconTile>
           </div>
           <CardTitle>{t("Verify your email")}</CardTitle>
           <CardDescription>{t("Enter the 6-digit code we sent to {email}.", { email: email ?? "" })}</CardDescription>

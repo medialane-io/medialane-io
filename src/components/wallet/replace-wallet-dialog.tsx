@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CheckCircle2, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
-import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError } from "@medialane/ui";
+import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError, IconTile } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import type { DeploymentStep } from "@medialane/sdk/starknet";
 import { useSession } from "@medialane/ui/utils/use-session";
@@ -85,9 +85,9 @@ export function ReplaceWalletDialog({ open, onOpenChange }: ReplaceWalletDialogP
         ) : (
           <>
             <div className="flex flex-col items-center gap-3 px-6 pt-8">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-                <RefreshCw className="h-8 w-8 text-destructive" />
-              </div>
+              <IconTile size="lg" destructive>
+                <RefreshCw />
+              </IconTile>
               <p aria-hidden className="text-xl font-bold">{t("Generate new wallet")}</p>
             </div>
             <MarketplaceConfirmStep
