@@ -118,7 +118,7 @@ export function LaunchMint() {
                 <div className="space-y-3">
                   <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-[1.1]">
                     {t("Secure your")}{" "}
-                    <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    <span className="text-primary">
                       {t("Medialane account")}
                     </span>
                   </h2>
@@ -143,7 +143,7 @@ export function LaunchMint() {
 
                     <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                       {t("Claim your")}{" "}
-                      <span className="bg-gradient-to-r from-primary via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                      <span className="text-primary">
                         {t("NFT")}
                       </span>
                     </h1>
@@ -161,7 +161,7 @@ export function LaunchMint() {
                     <div className="space-y-3">
                       <Button
                         size="lg"
-                        className="w-full rounded-xl h-12 text-base font-bold gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-lg shadow-primary/25"
+                        className="w-full rounded-xl h-12 text-base font-bold gap-2"
                         onClick={start}
                         disabled={!MINT_CONTRACT}
                       >
@@ -214,7 +214,7 @@ export function LaunchMint() {
 
                       <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-[1.1]">
                         {t("You're")}{" "}
-                        <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                        <span className="text-primary">
                           {t("in!")}
                         </span>
                       </h1>

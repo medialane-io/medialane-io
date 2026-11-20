@@ -23,7 +23,7 @@ const JOURNEYS = [
     label: msg("Explore the marketplace"),
     description: msg("Buy, sell and collect programmable digital assets from creators worldwide."),
     href: "/marketplace",
-    accent: "from-brand-blue/20 to-brand-blue/5 border-brand-blue/20",
+    accent: "bg-brand-blue/10 border-brand-blue/20",
     iconColor: "text-brand-blue",
     iconBg: "bg-brand-blue/10",
   },
@@ -32,7 +32,7 @@ const JOURNEYS = [
     label: msg("Create a digital asset"),
     description: msg("Mint your music, art, or content on-chain with programmable licensing."),
     href: "/launchpad/single-editions",
-    accent: "from-brand-purple/20 to-brand-purple/5 border-brand-purple/20",
+    accent: "bg-brand-purple/10 border-brand-purple/20",
     iconColor: "text-brand-purple",
     iconBg: "bg-brand-purple/10",
   },
@@ -41,7 +41,7 @@ const JOURNEYS = [
     label: msg("Launch a drop"),
     description: msg("Deploy a limited-edition NFT collection with custom mint conditions."),
     href: "/launchpad/drop/create",
-    accent: "from-brand-orange/20 to-brand-orange/5 border-brand-orange/20",
+    accent: "bg-brand-orange/10 border-brand-orange/20",
     iconColor: "text-brand-orange",
     iconBg: "bg-brand-orange/10",
   },
@@ -50,7 +50,7 @@ const JOURNEYS = [
     label: msg("Claim a POP credential"),
     description: msg("Collect soulbound proof-of-participation NFTs from events you attended."),
     href: "/launchpad/pop",
-    accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20",
+    accent: "bg-emerald-500/10 border-emerald-500/20",
     iconColor: "text-emerald-400",
     iconBg: "bg-emerald-500/10",
   },
@@ -175,7 +175,7 @@ export function WelcomePageClient() {
           </span>
           <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight leading-tight">
             {t("Your creativity,")}{" "}
-            <span className="gradient-text">{t("on-chain.")}</span>
+            <span className="text-primary">{t("on-chain.")}</span>
           </h1>
           <p className="mt-3 text-base text-muted-foreground max-w-xl">
             {t("Mint, monetize, trade, and collect creative assets, rwa and nfts.")}
@@ -207,7 +207,7 @@ export function WelcomePageClient() {
                 <Link
                   href={j.href}
                   className={cn(
-                    "group flex flex-col gap-3 p-5 rounded-2xl border bg-gradient-to-br transition-all duration-200",
+                    "group flex flex-col gap-3 p-5 rounded-2xl border transition-all duration-200",
                     "active:scale-[0.98]",
                     j.accent
                   )}
