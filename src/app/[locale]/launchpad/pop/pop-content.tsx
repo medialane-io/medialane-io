@@ -173,7 +173,7 @@ export function PopContent() {
               <h2 className="text-xl font-bold mt-0.5">{t("Open for claiming")}</h2>
             </div>
             <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Button asChild variant="soft" size="sm" className="gap-1.5">
                 <Link href="/launchpad/pop/my-events">
                   <LayoutList className="h-3.5 w-3.5" />
                   {t("My events")}

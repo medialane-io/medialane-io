@@ -88,11 +88,11 @@ export function RecoverySection() {
             : t("Recovery is off.")}
         </p>
         {status.enabled ? (
-          <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
+          <Badge variant="soft" className="border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
             {t("On")}
           </Badge>
         ) : (
-          <Button onClick={turnOn} disabled={busy !== null || !status.guardianPubkey} variant="outline" size="sm">
+          <Button onClick={turnOn} disabled={busy !== null || !status.guardianPubkey} variant="soft" size="sm">
             {busy === "on" && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             {t("Turn on recovery")}
           </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor, GradientButton } from "@medialane/ui";
+import { UserFacingError, OrderSummaryHero, TransactionDialogStates, successMessages, usdValueFor, ActionButton } from "@medialane/ui";
 import { useState } from "react";
 import { useRouter } from "@medialane/ui/router";
 import { ShoppingCart, RefreshCw, Zap, Minus, Plus } from "lucide-react";
@@ -161,7 +161,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 <span className="text-sm text-muted-foreground">{t("Quantity")}</span>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline" size="icon" className="h-7 w-7"
+                    variant="soft" size="icon" className="h-7 w-7"
                     disabled={quantity <= 1}
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                     aria-label={t("Decrease quantity")}
@@ -170,7 +170,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                   </Button>
                   <span className="w-8 text-center text-sm font-medium">{quantity}</span>
                   <Button
-                    variant="outline" size="icon" className="h-7 w-7"
+                    variant="soft" size="icon" className="h-7 w-7"
                     disabled={quantity >= maxQty}
                     onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
                     aria-label={t("Increase quantity")}
@@ -202,10 +202,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
                 {t("Close")}
               </Button>
             ) : (
-              <GradientButton onClick={handleBuyClick} disabled={!canBuy}>
+              <ActionButton solid className="w-full" onClick={handleBuyClick} disabled={!canBuy}>
                 {error ? <RefreshCw className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
                 {error ? t("Try again") : needsSwap && !paymentSymbol ? t("Select a token to pay with") : t("Buy now")}
-              </GradientButton>
+              </ActionButton>
             )}
 
             <DialogNote>{t("Purchases settle atomically onchain and assets transfer instantly.")}</DialogNote>

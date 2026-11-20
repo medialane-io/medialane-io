@@ -26,7 +26,7 @@ export function SignOutOtherDevices() {
 
   return (
     <div className="space-y-2">
-      <Button onClick={signOut} disabled={state.kind === "pending"} variant="outline" size="sm">
+      <Button onClick={signOut} disabled={state.kind === "pending"} variant="soft" size="sm">
         {state.kind === "pending" && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
         {t("Sign out other devices")}
       </Button>

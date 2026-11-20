@@ -5,7 +5,7 @@ import { useRouter } from "@medialane/ui/router";
 import Link from "@medialane/ui/link";
 import Image from "next/image";
 import { ArrowDown, ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
-import { coinKind, coinKindLabel, formatCoinPrice, CoinGuarantees, useCoinPrice, useMediaWallet, cn, GradientButton } from "@medialane/ui";
+import { coinKind, coinKindLabel, formatCoinPrice, CoinGuarantees, useCoinPrice, useMediaWallet, cn, ActionButton } from "@medialane/ui";
 import { MAX_TEAM_ALLOCATION_PERCENT } from "@medialane/sdk/starknet";
 import { useCoinGuarantees } from "@medialane/ui/utils/use-coin-guarantees";
 import { useCoinSupply } from "@medialane/ui/utils/use-coin-supply";
@@ -180,15 +180,14 @@ export function CoinExploreClient({ address }: { address: string }) {
         )}
 
         {coin && (!isStarknet || !price?.quoteSymbol) && (
-          <GradientButton asChild big>
+          <ActionButton solid big asChild className="w-full">
             <a
               href={tradeHref({ chain: coin.chain, contractAddress: coin.contractAddress })}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-brand-blue"
             >
               <ArrowUpRight className="h-4 w-4" />{" "}{t("Trade {symbol} on the Starknet app", { symbol })}</a>
-          </GradientButton>
+          </ActionButton>
         )}
 
         <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground/70">

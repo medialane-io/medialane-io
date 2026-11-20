@@ -172,7 +172,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
                   <p className="font-bold text-base">{t("Accept failed")}</p>
                   <p className="text-sm text-muted-foreground">{resultError}</p>
                 </div>
-                <Button variant="outline" className="w-full h-11" onClick={dismissResult}>
+                <Button variant="soft" className="w-full h-11" onClick={dismissResult}>
                   {t("Close")}
                 </Button>
               </div>

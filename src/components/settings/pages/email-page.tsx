@@ -91,11 +91,11 @@ export default function EmailSettingsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="min-w-0 truncate text-sm text-foreground">{status.email}</span>
                     {status.verified ? (
-                      <Badge variant="outline" className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
+                      <Badge variant="soft" className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-2xs text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="h-3 w-3" /> {t("Verified")}
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="gap-1 border-yellow-500/40 bg-yellow-500/10 text-2xs text-yellow-700 dark:text-yellow-400">
+                      <Badge variant="soft" className="gap-1 border-yellow-500/40 bg-yellow-500/10 text-2xs text-yellow-700 dark:text-yellow-400">
                         <Clock className="h-3 w-3" /> {t("Not verified")}
                       </Badge>
                     )}
@@ -110,7 +110,7 @@ export default function EmailSettingsPage() {
               <div className="flex flex-wrap gap-2">
                 {status && !status.verified ? (
                   <Button
-                    variant="outline"
+                    variant="soft"
                     onClick={() => {
                       setSkipInitialSend(false);
                       setDialogOpen(true);

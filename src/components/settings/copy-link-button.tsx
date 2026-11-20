@@ -20,7 +20,7 @@ export function CopyLinkButton({ url, label = "Copy link" }: { url: string; labe
   }
 
   return (
-    <Button type="button" variant="outline" size="sm" onClick={() => void copy()}>
+    <Button type="button" variant="soft" size="sm" onClick={() => void copy()}>
       {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
       {copied ? t("Copied") : label}
     </Button>
