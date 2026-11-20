@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@medialane/ui/dialog";
 import { Input } from "@medialane/ui/input";
-import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError } from "@medialane/ui";
+import { AddressDisplay, MarketplaceConfirmStep, MarketplaceProcessingState, describeError, IconTile } from "@medialane/ui";
 import { Button } from "@medialane/ui/button";
 import { InvalidRecoveryKeyError, parseRecoveryKey, signRecoveryKeyProof } from "@medialane/sdk/starknet";
 import { useSession } from "@medialane/ui/utils/use-session";
@@ -122,9 +122,9 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
         ) : (
           <>
             <div className="flex flex-col items-center gap-3 px-6 pt-8">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-violet-500/10">
-                <KeyRound className="h-8 w-8 text-violet-600 dark:text-violet-400" />
-              </div>
+              <IconTile size="lg">
+                <KeyRound />
+              </IconTile>
               <p className="text-xl font-bold">{t("Recover with your key")}</p>
             </div>
             <MarketplaceConfirmStep

@@ -64,8 +64,6 @@ export function RecoverySection() {
   return (
     <AccountSection
       icon={LifeBuoy}
-      iconColor="text-emerald-600 dark:text-emerald-400"
-      iconBg="bg-emerald-500/10"
       title={t("Recovery by email")}
       description={t("Recovery by email gives this wallet a guardian: a backup key kept by the service and unique to this wallet. With the guardian in place, signing in with the account email on a new browser brings the wallet back, so it stays available on any browser.")}
     >

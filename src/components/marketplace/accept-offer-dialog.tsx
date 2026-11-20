@@ -1,7 +1,7 @@
 "use client";
 
 import { MarketplaceDialog } from "@/components/marketplace/dialog-frame";
-import { RewardEarned, formatDisplayPrice } from "@medialane/ui";
+import { RewardEarned, formatDisplayPrice, IconTile } from "@medialane/ui";
 import {
   MarketplaceDialogHero,
   MarketplaceConfirmStep,
@@ -68,9 +68,9 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
       {warningOpen ? (
         <div className="flex flex-col p-5 gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/10">
-              <AlertTriangle className="h-4.5 w-4.5 text-amber-400" />
-            </div>
+            <IconTile size="sm">
+              <AlertTriangle />
+            </IconTile>
             <div>
               <p className="text-sm font-semibold text-foreground">{t("Active listing detected")}</p>
               <p className="mt-1 text-xs text-muted-foreground">{t.rich("Accepting this offer will transfer the NFT, leaving {value} unfulfillable. Cancel {value2} first to keep the marketplace clean.", { value: activeListings.length === 1 ? "your listing" : `your ${activeListings.length} listings`, value2: activeListings.length === 1 ? "it" : "them" })}</p>

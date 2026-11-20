@@ -17,7 +17,7 @@ import { CounterOfferDialog } from "@/components/marketplace/counter-offer-dialo
 import { ListingDialog } from "@/components/marketplace/listing-dialog";
 import { TransferDialog } from "@/components/marketplace/transfer-dialog";
 import { EXPLORER_URL, SUPPORTED_TOKENS } from "@/lib/constants";
-import { ArchiveAssetDialog, formatDisplayPrice } from "@medialane/ui";
+import { ArchiveAssetDialog, formatDisplayPrice, IconTile } from "@medialane/ui";
 import { resolveImage } from "@/lib/utils";
 import { useT } from "@medialane/ui/i18n";
 
@@ -165,9 +165,9 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
 
             {tx.phase === "error" && (
               <div className="flex flex-col items-center gap-4 p-6 pt-3">
-                <div className="h-12 w-12 rounded-full bg-destructive/15 flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-destructive" />
-                </div>
+                <IconTile destructive>
+                  <AlertCircle />
+                </IconTile>
                 <div className="text-center space-y-1">
                   <p className="font-bold text-base">{t("Accept failed")}</p>
                   <p className="text-sm text-muted-foreground">{resultError}</p>

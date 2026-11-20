@@ -1,6 +1,6 @@
 "use client";
 
-import { EmailCodeEntry } from "@medialane/ui";
+import { EmailCodeEntry, IconTile } from "@medialane/ui";
 import { useState } from "react";
 import { Mail, CheckCircle2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@medialane/ui/dialog";
@@ -40,9 +40,9 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
     <Dialog open={open} onOpenChange={(next) => emailCode.state.status !== "verifying" && onOpenChange(next)}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            {verified ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Mail className="h-6 w-6 text-primary" />}
-          </div>
+          <IconTile className="mb-2">
+            {verified ? <CheckCircle2 /> : <Mail />}
+          </IconTile>
           <DialogTitle>{verified ? t("You're all set") : t("Verify your email")}</DialogTitle>
           <DialogDescription>
             {verified

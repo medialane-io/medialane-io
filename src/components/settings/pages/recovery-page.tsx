@@ -27,8 +27,6 @@ export default function RecoverySettingsPage() {
           {address ? (
             <AccountSection
               icon={KeyRound}
-              iconColor="text-violet-600 dark:text-violet-400"
-              iconBg="bg-violet-500/10"
               title={t("Your wallet key")}
               description={t("Save a copy to backup and secure this wallet")}
             >
@@ -40,8 +38,6 @@ export default function RecoverySettingsPage() {
           ) : null}
           <AccountSection
             icon={LogIn}
-            iconColor="text-violet-600 dark:text-violet-400"
-            iconBg="bg-violet-500/10"
             title={t("Recover with your key")}
             description={t("Paste a recovery key to make its wallet the active wallet on this account.")}
           >

@@ -14,7 +14,7 @@ import { MINT_CONTRACT } from "@/lib/constants";
 import { assetHref } from "@/lib/routes";
 import { useGenesisHolding } from "@/hooks/use-genesis-holding";
 import type { GenesisHolding } from "@/lib/genesis-holding";
-import { cn } from "@medialane/ui";
+import { cn, IconTile } from "@medialane/ui";
 import { useT, msg } from "@medialane/ui/i18n";
 
 const JOURNEYS = [
@@ -25,7 +25,6 @@ const JOURNEYS = [
     href: "/marketplace",
     accent: "bg-brand-blue/10 border-brand-blue/20",
     iconColor: "text-brand-blue",
-    iconBg: "bg-brand-blue/10",
   },
   {
     icon: Pencil,
@@ -34,7 +33,6 @@ const JOURNEYS = [
     href: "/launchpad/single-editions",
     accent: "bg-brand-purple/10 border-brand-purple/20",
     iconColor: "text-brand-purple",
-    iconBg: "bg-brand-purple/10",
   },
   {
     icon: Package,
@@ -43,7 +41,6 @@ const JOURNEYS = [
     href: "/launchpad/drop/create",
     accent: "bg-brand-orange/10 border-brand-orange/20",
     iconColor: "text-brand-orange",
-    iconBg: "bg-brand-orange/10",
   },
   {
     icon: Award,
@@ -52,7 +49,6 @@ const JOURNEYS = [
     href: "/launchpad/pop",
     accent: "bg-emerald-500/10 border-emerald-500/20",
     iconColor: "text-emerald-400",
-    iconBg: "bg-emerald-500/10",
   },
 ] as const;
 
@@ -212,9 +208,9 @@ export function WelcomePageClient() {
                     j.accent
                   )}
                 >
-                  <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center", j.iconBg)}>
-                    <j.icon className={cn("h-4 w-4", j.iconColor)} />
-                  </div>
+                  <IconTile size="sm">
+                    <j.icon />
+                  </IconTile>
                   <div className="flex-1 space-y-1">
                     <p className="font-bold text-sm leading-snug">{t(j.label)}</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">{t(j.description)}</p>
