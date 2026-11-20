@@ -5,7 +5,7 @@ import { SWRConfig } from "swr";
 import { Provider as TooltipProvider } from "@radix-ui/react-tooltip";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { useEffect } from "react";
-import { SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, IpfsGatewayFallback, PINATA_PUBLIC_GATEWAY } from "@medialane/ui";
+import { SelfFundConsentDialog, setUploadDiagnosticsReporter, MedialaneAppProvider, IpfsGatewayFallback } from "@medialane/ui";
 import { OnboardingGate } from "@/components/wallet/onboarding-gate";
 import { AppShell } from "@/components/app-shell";
 import { IPFS_GATEWAY } from "@/lib/constants";
@@ -42,7 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           }}
         >
           {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
-          <IpfsGatewayFallback primary={IPFS_GATEWAY} fallback={PINATA_PUBLIC_GATEWAY} />
+          <IpfsGatewayFallback primary={IPFS_GATEWAY} />
           <OnboardingGate />
           <AppAdapter>
             <AppShell>{children}</AppShell>
