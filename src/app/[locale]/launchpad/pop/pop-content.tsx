@@ -40,7 +40,7 @@ function PopCollectionCard({ collection }: { collection: ApiCollection }) {
             unoptimized
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/40 via-brand-blue/30 to-brand-navy/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-brand-blue/30 flex items-center justify-center">
             <span className="text-7xl font-black text-white/10 select-none">{initial}</span>
           </div>
         )}

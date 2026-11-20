@@ -12,10 +12,10 @@ export function AirdropEventCard() {
   const [errored, setErrored] = useState(false);
   const src = "/genesis.jpg";
   return (
-    <div className="relative rounded-[28px] p-[2px] bg-gradient-to-br from-brand-blue via-brand-purple to-brand-orange shadow-2xl shadow-brand-purple/10">
-      <div className="relative rounded-[26px] overflow-hidden aspect-square w-full bg-card">
+    <div className="relative">
+      <div className="relative rounded-2xl overflow-hidden aspect-square w-full bg-card">
         {errored ? (
-          <div className="w-full h-full bg-gradient-to-br from-brand-blue/10 via-brand-purple/10 to-brand-orange/10 flex flex-col items-center justify-center gap-3">
+          <div className="w-full h-full bg-muted flex flex-col items-center justify-center gap-3">
             <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
               <ImageIcon className="h-7 w-7 text-primary/40" />
             </div>

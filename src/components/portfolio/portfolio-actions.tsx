@@ -101,7 +101,7 @@ export function useCounterOfferActions({ refresh }: Context): PortfolioOrderActi
             description={t("On-chain status for the counter-offer you accepted.")}
           >
             <div className="flex flex-col items-center gap-3 pt-6 px-6">
-              <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border bg-gradient-to-br from-muted to-muted-foreground/20">
+              <div className="relative h-24 w-24 rounded-xl overflow-hidden border border-border bg-muted">
                 {counterImage && (
                   <Image
                     src={counterImage}

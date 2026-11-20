@@ -25,7 +25,6 @@ function DigitBlock({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div className="relative rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-3 min-w-[3rem] sm:min-w-[3.75rem] text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
         <span
           key={value}
           className="relative text-2xl sm:text-3xl font-bold tabular-nums block animate-fade-up"
