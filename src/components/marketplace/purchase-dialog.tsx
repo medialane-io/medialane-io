@@ -16,7 +16,7 @@ import { fulfillOrder } from "@/lib/marketplace-intents";
 import type { ApiOrder } from "@medialane/sdk";
 import { resolveImage } from "@/lib/utils";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
-import { getMedialaneClient, marketplaceFeeBps, purchaseTotal } from "@/lib/medialane-client";
+import { getMedialaneClient } from "@/lib/medialane-client";
 import { useT } from "@medialane/ui/i18n";
 
 interface PurchaseDialogProps {
@@ -37,13 +37,8 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const [paymentSymbol, setPaymentSymbol] = useState<string | null>(null);
 
   const is1155 = order.offer?.itemType === "ERC1155";
-  const maxQty = is1155
-    ? Math.max(1, parseInt(order.remainingAmount ?? order.offer.startAmount ?? "1", 10))
-    : 1;
-
   const assetName = order.token?.name || `Token #${order.nftTokenId}`;
   const assetImage = resolveImage(order.token?.image);
-  const requiredRaw = purchaseTotal(BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1));
   const swapFrom = paymentSymbol && paymentSymbol !== order.price?.currency ? paymentSymbol : null;
 
   const { open: openWalletPanel } = useMediaWallet();
@@ -56,16 +51,13 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
     await start(async (ctx) => {
       const qty = is1155 ? String(values.quantity) : undefined;
 
-      const quantity = is1155 ? BigInt(values.quantity || 1) : 1n;
-      const grossAmount = BigInt(order.consideration.startAmount ?? "0") * quantity;
-
       let swap: Awaited<ReturnType<typeof createSwapIntent>> | undefined;
       if (values.paymentSymbol && order.price?.currency && walletAddress) {
         try {
           swap = await createSwapIntent(getMedialaneClient(), {
             sell: values.paymentSymbol,
             buy: order.price.currency,
-            amountRaw: purchaseTotal(grossAmount).toString(),
+            amountRaw: getMedialaneClient().purchaseCost(order, values.quantity).total.toString(),
             takerAddress: walletAddress,
           });
         } catch {
@@ -129,14 +121,10 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         onDone={() => onOpenChange(false)}
       >
         <PurchasePanel
-          name={assetName}
+          order={order}
           image={assetImage}
-          price={order.price}
-          available={is1155 ? maxQty : null}
           quantity={quantity}
           onQuantityChange={setQuantity}
-          amountRaw={requiredRaw}
-          feeBps={marketplaceFeeBps()}
           walletAddress={hasWallet ? walletAddress : null}
           payWith={paymentSymbol}
           onPayWithChange={setPaymentSymbol}
