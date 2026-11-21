@@ -13,9 +13,7 @@ import type { SealedOwner } from "@/lib/wallet/passkey";
 import type { StarknetVenueSigner } from "@medialane/sdk/starknet";
 
 export interface WalletNativeSession {
-  /** The wallet this browser can sign for; null when it cannot. */
   address: string | null;
-  /** This browser holds a key for the account's wallet that the wallet has not refused. */
   hasWallet: boolean;
   isDeployed: boolean | null;
   signer: StarknetVenueSigner | null;

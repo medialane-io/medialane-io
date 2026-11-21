@@ -1,4 +1,3 @@
-
 export function UserShieldIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg

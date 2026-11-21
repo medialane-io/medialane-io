@@ -16,7 +16,6 @@ export const afterEmailCheck = (exists: boolean): AfterEmailCheck => (exists ? "
 export const afterRegister = (outcome: "created" | "already-exists"): AfterRegister =>
   outcome === "created" ? "wallet-setup" : "send-code";
 
-/** Where a signed-in user goes next. Their wallet is ready on this browser only when its setup is finished and this browser's key is on it. */
 export function walletStep(
   wallet: { walletAddress: string; needsKeySetup: boolean } | null,
   localOwner: { address: string; onWallet: boolean } | null,

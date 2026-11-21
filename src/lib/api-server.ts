@@ -6,7 +6,6 @@ import { absoluteUrl } from "@/lib/seo";
 const REVALIDATE_SECONDS = 60;
 const api = () => getMedialaneClient().api;
 
-/** Server-side reads for page metadata: cached briefly, and null when the backend can't answer. */
 function cached<A extends (string | number)[], T>(name: string, read: (...args: A) => Promise<T>) {
   return unstable_cache(
     async (...args: A): Promise<T | null> => {
@@ -23,7 +22,6 @@ function cached<A extends (string | number)[], T>(name: string, read: (...args: 
 
 const BACKEND_ORIGIN = new URL(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001").origin;
 
-/** Absolute image URL for page metadata; images served by the backend go through this app's image proxy. */
 export function ipfsToHttpServer(uri: string | null | undefined): string {
   const url = toAbsoluteImageUrl(uri);
   return url.startsWith(`${BACKEND_ORIGIN}/`) ? absoluteUrl(`/api/img?url=${encodeURIComponent(url)}`) : url;

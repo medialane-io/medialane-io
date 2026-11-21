@@ -22,7 +22,6 @@ const deps = {
   },
 };
 
-/** The pending recovery is for the key this browser holds aside. */
 const forThisBrowser = (status: WalletRecovery): boolean => {
   const pending = ownerStore.loadRecovery();
   return (
@@ -33,7 +32,6 @@ const forThisBrowser = (status: WalletRecovery): boolean => {
   );
 };
 
-/** Whole days the wallet contract waits before an email recovery completes; null when it can't be read. */
 async function readWaitDays(wallet: string): Promise<number | null> {
   const seconds = await getEscapeSecurityPeriod(getMedialaneClient().provider, wallet);
   const days = Math.round(seconds / DAY_SECONDS);

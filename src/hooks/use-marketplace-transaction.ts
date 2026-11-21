@@ -6,7 +6,6 @@ import { isBusyPhase, useMedialaneClient, useTransaction } from "@medialane/ui";
 import { QUERY_PREFIX } from "@medialane/ui/utils/query-keys";
 import type { MarketplaceContext } from "@/lib/marketplace-intents";
 
-/** Revalidates every cached order, listing and token query. */
 function useInvalidateMarketplace(): () => void {
   const { mutate } = useSWRConfig();
   return useCallback(() => {
@@ -27,7 +26,6 @@ function useInvalidateMarketplace(): () => void {
 
 type TransactionHook = () => Pick<ReturnType<typeof useTransaction>, "phase" | "txHash" | "error" | "retryable" | "run" | "reset">;
 
-/** One marketplace write: status, receipt check, indexer sync and signer release come from useTransaction. */
 export function useMarketplaceTransaction(useTx: TransactionHook = useTransaction) {
   const tx = useTx();
   const client = useMedialaneClient();
@@ -51,7 +49,6 @@ export function useMarketplaceTransaction(useTx: TransactionHook = useTransactio
     txHash: tx.txHash,
     error: tx.error,
     retryable: tx.retryable,
-    /** The failure came after a transaction was sent; before that, nothing reached the chain. */
     failedAfterSubmit: tx.phase === "error" && tx.txHash !== null,
     start,
     reset: tx.reset,

@@ -18,7 +18,6 @@ export interface GenesisMintMessages {
 export interface UseGenesisMintOptions {
   address: string | null;
   messages: GenesisMintMessages;
-  /** The genesis contract; the configured one by default. */
   contract?: string;
 }
 

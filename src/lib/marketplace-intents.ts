@@ -13,7 +13,6 @@ export interface MarketplaceContext {
 
 export interface MarketplaceResult {
   txHash: string;
-  /** The order the intent created, as recorded by the backend once it confirmed the transaction. */
   orderHash: string | null;
 }
 
@@ -113,7 +112,6 @@ async function pollUntilTerminal(client: MedialaneClient, id: string, intervalMs
   throw new Error("Verification timed out. Check your account for the transaction status.");
 }
 
-/** Creates an intent, signs it if needed, executes it, confirms it and waits until the backend settles it. */
 export async function runMarketplaceIntent(
   { client, signer }: MarketplaceContext,
   create: () => Promise<CreatedIntent>,
@@ -216,7 +214,6 @@ function isStarknetAddress(value: string): boolean {
   return /^0x[0-9a-fA-F]{1,64}$/.test(value) && value.replace(/^0x0*/, "").length > 0;
 }
 
-/** Sends an NFT to another address. Transfers create no order, so there is nothing to confirm or poll. */
 export async function transferNft({ client, signer }: MarketplaceContext, input: TransferInput): Promise<string> {
   if (!isStarknetAddress(input.toAddress)) throw new UserFacingError("Invalid recipient address.");
   if (!isStarknetAddress(input.contractAddress)) throw new UserFacingError("Invalid token contract address.");
