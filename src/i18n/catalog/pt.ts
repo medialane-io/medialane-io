@@ -563,7 +563,7 @@ const pt: Catalog = {
   "Your wallet key": "A chave da sua carteira",
   "Your web presence": "Sua presença na web",
   "Your work, collections and coins, all in one place.": "Sua obra, coleções e moedas, tudo em um só lugar.",
-  "Your {orderCurrency} balance is too low — pay with another token instead:": "Seu saldo de {orderCurrency} está baixo — pague com outro token:",
+  "Buy with another coin:": "Compre com outra moeda:",
   "Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.": "Seu saldo de {watchedCurrency} pode ser insuficiente para esta oferta. Você ainda pode enviar — o pagamento só é cobrado quando a oferta é aceita.",
   "Yours to keep.": "Seu para sempre.",
   "Zero protocol fees": "Zero taxas do protocolo",

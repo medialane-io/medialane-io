@@ -158,7 +158,7 @@ export function PayWithPicker({ orderCurrency, requiredRaw, walletAddress, selec
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-muted-foreground">{t("Your {orderCurrency} balance is too low — pay with another token instead:", { orderCurrency })}</p>
+      <p className="text-xs font-medium text-muted-foreground">{t("Buy with another coin:")}</p>
       <div className="space-y-1.5">
         {held.map((row) => (
           <PayWithOption
