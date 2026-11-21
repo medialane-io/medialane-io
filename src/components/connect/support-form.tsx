@@ -36,7 +36,7 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
     return (
       <div className="w-full space-y-4">
         <p className="text-sm text-muted-foreground">
-          {t("Thanks, we've got your message. We'll write back to")} <span className="text-foreground">{email}</span>.
+          {t("Message sent. The reply goes to")} <span className="text-foreground">{email}</span>.
         </p>
         <Button variant="ghost" className="w-full" onClick={onBack}>
           {t("Back")}
@@ -50,7 +50,7 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
       <div className="space-y-1">
         <p className="text-sm font-medium">{t("Contact support")}</p>
         <p className="text-sm text-muted-foreground">
-          {t("We'll reply to")} <span className="text-foreground">{email}</span>.
+          {t("Replies go to")} <span className="text-foreground">{email}</span>.
         </p>
       </div>
       <div className="space-y-1.5">

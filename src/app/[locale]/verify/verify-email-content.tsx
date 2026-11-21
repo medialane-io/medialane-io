@@ -7,7 +7,6 @@ import { Mail, ShieldCheck, CheckCircle2, AlertCircle, Loader2 } from "lucide-re
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { Button } from "@medialane/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@medialane/ui/card";
 import { Input } from "@medialane/ui/input";
 import { useEmailCode } from "@/hooks/use-email-code";

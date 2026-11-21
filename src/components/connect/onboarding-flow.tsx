@@ -22,7 +22,7 @@ import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wall
 import { afterEmailCheck, afterRegister, isEmailAddress, walletStep } from "@/lib/onboarding/decisions";
 import { checkWalletStep, refreshWalletStep } from "@/lib/wallet/wallet-step";
 import { flowReducer, initialFlow, retryTarget, type OnboardingStep } from "@/lib/onboarding/flow";
-import { useT } from "@medialane/ui/i18n";
+import { msg, useT } from "@medialane/ui/i18n";
 
 export type { OnboardingStep };
 export { RESEND_COOLDOWN_SECONDS };
@@ -34,9 +34,9 @@ export function isWalletStep(step: OnboardingStep): boolean {
 }
 
 export function walletStepLabel(step: OnboardingStep): string {
-  if (step === "checking-account") return "Checking your account…";
-  if (step === "deploying") return "Setting up your account…";
-  return "Creating passkey…";
+  if (step === "checking-account") return msg("Checking account…");
+  if (step === "deploying") return msg("Setting up account…");
+  return msg("Creating passkey…");
 }
 
 export { describeWalletFailure } from "@medialane/ui";
@@ -194,7 +194,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const continueWithEmail = async () => {
     if (!isEmailAddress(email)) {
-      dispatch({ type: "email-step-failed", message: t("Please enter your full email address, like name@example.com.") });
+      dispatch({ type: "email-step-failed", message: t("Enter a full email address, like name@example.com.") });
       return;
     }
     dispatch({ type: "email-submitted" });
@@ -246,7 +246,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     return withHeading(
       <div className="flex items-center gap-2 py-2 text-sm text-emerald-500">
         <CheckCircle2 className="h-4 w-4" />
-        {t("You're all set.")}
+        {t("All set.")}
       </div>
     );
   }
@@ -257,7 +257,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         {errorBanner}
         {error ? (
           <p className="text-xs text-muted-foreground">
-            {t("Your account setup is not complete. Please try again or contact support if the problem persist.")}
+            {t("Setup can pick up where it left off. Try again or contact support.")}
           </p>
         ) : null}
         {error ? (
@@ -269,12 +269,12 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         ) : (
           <div className="flex w-full items-center gap-2 py-2.5 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            {walletStepLabel(step)}
+            {t(walletStepLabel(step))}
           </div>
         )}
         {error || step === "checking-account" ? null : (
           <p className="text-xs text-muted-foreground">
-            {t("Use your passkey, Face ID or Touch ID to secure your account.")}
+            {t("A passkey, Face ID or Touch ID secures the account.")}
           </p>
         )}
       </div>
@@ -312,7 +312,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         type="email"
         inputMode="email"
         autoComplete="email"
-        placeholder={t("you@example.com")}
+        placeholder={t("name@example.com")}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         disabled={busy}

@@ -34,7 +34,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       const sealed = await sealImportedOwnerKey(parseRecoveryKey(keyInput));
       const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
       if (!owned) {
-        setErr("That key does not open this account. Check you copied the whole recovery key.");
+        setErr(t("Paste the full recovery key for this account."));
         setBusy(false);
         return;
       }
@@ -43,7 +43,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       onRestored();
     } catch (e) {
       if (e instanceof InvalidRecoveryKeyError) {
-        setErr("That does not look like a recovery key. Check you copied all of it.");
+        setErr(t("Paste the full recovery key, starting with medialane-recovery."));
       } else {
         setErr(describeError(e).message);
       }
@@ -54,7 +54,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        {t("Paste the recovery key you saved from Settings. This device will ask for a new passkey and lock the key behind it.")}
+        {t("Paste the recovery key saved from Settings. This device then asks for a new passkey to protect it.")}
       </p>
       <Input
         value={keyInput}
@@ -73,7 +73,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       {err && <p className="text-sm text-destructive">{err}</p>}
       <Button onClick={restore} disabled={busy || !preview}>
         {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {t("Restore my account")}
+        {t("Restore account")}
       </Button>
     </div>
   );

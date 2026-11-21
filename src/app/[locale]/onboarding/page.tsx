@@ -42,7 +42,7 @@ function OnboardingContent() {
     <AccountCard>
       <OnboardingFlow
         start="wallet"
-        heading={{ title: t("Secure your account"), description: t("Finish setting up your account.") }}
+        heading={{ title: t("Secure the account"), description: t("Finish account setup.") }}
         onDone={onDone}
       />
     </AccountCard>
