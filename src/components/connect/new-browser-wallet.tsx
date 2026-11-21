@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useId, useState } from "react";
+import { Clock, Loader2 } from "lucide-react";
 import { Button } from "@medialane/ui/button";
-import type { WalletRecovery } from "@medialane/sdk";
-import { getMedialaneClient } from "@/lib/medialane-client";
-import { EmailRecovery } from "@/components/wallet/email-recovery";
+import { useSession } from "@medialane/ui/utils/use-session";
+import { useFormat, useT } from "@medialane/ui/i18n";
 import { RecoveryKeyRestore } from "@/components/wallet/recovery-key-restore";
+import { useEmailRecovery } from "@/components/wallet/use-email-recovery";
+import { AccountHeading } from "./account-card";
 import { SupportForm } from "./support-form";
-import { useT } from "@medialane/ui/i18n";
 
 const OPTION_CLASS = "h-auto w-full whitespace-normal py-3";
 
@@ -16,11 +16,15 @@ function OptionButton({
   title,
   description,
   primary,
+  busy,
+  disabled,
   onClick,
 }: {
   title: string;
   description: string;
   primary?: boolean;
+  busy?: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   const id = useId();
@@ -30,9 +34,10 @@ function OptionButton({
       className="h-auto w-full justify-start whitespace-normal px-4 py-3 text-left"
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-description`}
+      disabled={disabled}
       onClick={onClick}
     >
-      <span className="flex flex-col gap-0.5">
+      <span className="flex flex-1 flex-col gap-0.5">
         <span id={`${id}-title`} className="text-sm font-medium">
           {title}
         </span>
@@ -40,6 +45,7 @@ function OptionButton({
           {description}
         </span>
       </span>
+      {busy && <Loader2 className="h-4 w-4 shrink-0 animate-spin" />}
     </Button>
   );
 }
@@ -56,88 +62,151 @@ export function NewBrowserWallet({
   onUseAnotherEmail: () => void;
 }) {
   const t = useT();
-  const [status, setStatus] = useState<WalletRecovery | null | undefined>(undefined);
+  const intl = useFormat();
+  const { session } = useSession();
+  const recovery = useEmailRecovery(session?.walletAddress ?? undefined, onRecovered);
+  const { status, mine, waitDays, busy, error } = recovery;
   const [view, setView] = useState<View>("options");
-
-  useEffect(() => {
-    getMedialaneClient().api.account.walletRecovery().then(setStatus).catch(() => setStatus(null));
-  }, []);
-
   const back = () => setView("options");
-  const anotherEmail = (
-    <OptionButton title={t("Use a different email")} description={t("Sign in with another address.")} onClick={onUseAnotherEmail} />
-  );
+  const welcome = t("Welcome back");
 
   if (status === undefined) {
     return (
-      <div className="flex w-full items-center gap-2 py-2.5 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        {t("Checking your account")}
+      <div className="w-full space-y-6">
+        <AccountHeading title={welcome} />
+        <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {t("Checking account")}
+        </div>
       </div>
     );
   }
 
-  if (view === "support") return <SupportForm onBack={back} />;
-
-  if (status?.enabled) {
+  if (mine && status?.state === "ready") {
     return (
-      <div className="w-full space-y-4">
-        <p className="text-sm text-muted-foreground">{t("Finish your account setup and secure this device")}</p>
-        <EmailRecovery status={status} onStatus={setStatus} onRecovered={onRecovered} />
-        <OptionButton title={t("Contact support")} description={t("General help.")} onClick={() => setView("support")} />
-        {anotherEmail}
+      <div className="w-full space-y-6">
+        <AccountHeading title={t("Account ready")} />
+        <div className="space-y-3">
+          <Button size="lg" onClick={recovery.finish} disabled={busy} className="w-full">
+            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t("Open account")}
+          </Button>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (mine && status?.readyAt) {
+    return (
+      <div className="w-full space-y-6">
+        <AccountHeading
+          icon={<Clock />}
+          title={t("Recovery started")}
+          description={t("Account will be available on {value}.", {
+            value: intl.date(status.readyAt * 1000, { month: "short", day: "numeric" }),
+          })}
+        />
+        <div className="space-y-3 text-center text-sm text-muted-foreground">
+          <p>{t("Medialane accounts are smart contracts owned by their holders. No one else can access them, not even Medialane.")}</p>
+          <p>
+            {waitDays === null
+              ? t("A waiting period keeps every recovery secure.")
+              : t.plural("A {count}-day wait keeps every recovery secure.", "A {count}-day wait keeps every recovery secure.", waitDays)}{" "}
+            {t("An email arrives when the account is ready.")}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "support") {
+    return (
+      <div className="w-full space-y-6">
+        <AccountHeading title={welcome} />
+        <SupportForm onBack={back} />
       </div>
     );
   }
 
   if (view === "key") {
     return (
-      <div className="w-full space-y-4">
-        <RecoveryKeyRestore onRestored={onRecovered} />
-        <Button variant="ghost" className="w-full" onClick={back}>
-          {t("Back")}
-        </Button>
+      <div className="w-full space-y-6">
+        <AccountHeading title={welcome} />
+        <div className="space-y-4">
+          <RecoveryKeyRestore onRestored={onRecovered} />
+          <Button variant="ghost" className="w-full" onClick={back}>
+            {t("Back")}
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (view === "new-wallet") {
     return (
-      <div className="w-full space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">{t("Start a new wallet?")}</p>
-          <p className="text-sm text-muted-foreground">
-            {t("This account gets a fresh wallet. The current wallet's contents won't show up in the new one automatically.")}
-          </p>
+      <div className="w-full space-y-6">
+        <AccountHeading title={welcome} />
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{t("Start a new wallet?")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("This account gets a fresh wallet. The current wallet's contents won't show up in the new one automatically.")}
+            </p>
+          </div>
+          <Button variant="soft" className={OPTION_CLASS} onClick={onStartNew}>
+            {t("Start a new wallet")}
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={back}>
+            {t("Cancel")}
+          </Button>
         </div>
-        <Button variant="soft" className={OPTION_CLASS} onClick={onStartNew}>
-          {t("Start a new wallet")}
-        </Button>
-        <Button variant="ghost" className="w-full" onClick={back}>
-          {t("Cancel")}
-        </Button>
       </div>
     );
   }
 
+  const emailDescription =
+    status && status.state !== "none"
+      ? t("Replaces the recovery already started.")
+      : waitDays === null
+        ? t("Available after a waiting period.")
+        : t.plural("Available in {count} day.", "Available in {count} days.", waitDays);
+
   return (
-    <div className="w-full space-y-4">
-      <p className="text-sm text-muted-foreground">{t("The account is ready. This device needs the recovery key to open it.")}</p>
+    <div className="w-full space-y-6">
+      <AccountHeading title={welcome} description={t("Choose how to open the account on this device.")} />
       <div className="space-y-2.5">
         <OptionButton
           primary
-          title={t("Use the recovery key")}
-          description={t("Paste the key to restore the account and everything in it.")}
+          title={t("Use recovery key")}
+          description={t("Opens right away.")}
+          disabled={busy}
           onClick={() => setView("key")}
         />
+        {status?.enabled ? (
+          <OptionButton
+            title={t("Recover with email")}
+            description={emailDescription}
+            busy={busy}
+            disabled={busy}
+            onClick={recovery.start}
+          />
+        ) : (
+          <OptionButton
+            title={t("Start a new wallet")}
+            description={t("Creates a fresh wallet for this account.")}
+            onClick={() => setView("new-wallet")}
+          />
+        )}
         <OptionButton
-          title={t("Start a new wallet")}
-          description={t("Creates a fresh wallet for this account.")}
-          onClick={() => setView("new-wallet")}
+          title={t("Use a different email")}
+          description={t("Sign in with another address.")}
+          disabled={busy}
+          onClick={onUseAnotherEmail}
         />
-        {anotherEmail}
-        <OptionButton title={t("Contact support")} description={t("General help.")} onClick={() => setView("support")} />
+        <OptionButton title={t("Contact support")} description={t("General help.")} disabled={busy} onClick={() => setView("support")} />
       </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }
