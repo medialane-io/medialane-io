@@ -19,7 +19,7 @@ import { useUsdPrices } from "@medialane/ui/utils/use-usd-prices";
 import { useErc20Balance } from "@medialane/ui/utils/media-wallet/use-erc20-balance";
 import { getTokenBySymbol } from "@medialane/sdk";
 import { createSwapIntent } from "@/lib/wallet/swap-calls";
-import { getMedialaneClient } from "@/lib/medialane-client";
+import { getMedialaneClient, purchaseTotal } from "@/lib/medialane-client";
 import { PayWithPicker } from "@/components/marketplace/pay-with-picker";
 import { useT } from "@medialane/ui/i18n";
 
@@ -53,7 +53,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
   const assetName = order.token?.name || `Token #${order.nftTokenId}`;
   const assetImage = resolveImage(order.token?.image);
 
-  const requiredRaw = BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1);
+  const requiredRaw = purchaseTotal(BigInt(order.consideration.startAmount ?? "0") * BigInt(is1155 ? quantity : 1));
   const orderCurrencyToken = order.price?.currency ? getTokenBySymbol(order.price.currency) : undefined;
   const { rawBalance: orderCurrencyBalance, isLoading: balanceLoading } = useErc20Balance(orderCurrencyToken?.address ?? null,
     walletAddress
@@ -74,7 +74,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
           swap = await createSwapIntent(getMedialaneClient(), {
             sell: values.paymentSymbol,
             buy: order.price.currency,
-            amountRaw: grossAmount.toString(),
+            amountRaw: purchaseTotal(grossAmount).toString(),
             takerAddress: walletAddress,
           });
         } catch {

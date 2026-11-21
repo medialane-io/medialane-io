@@ -1,4 +1,5 @@
-import { MedialaneClient } from "@medialane/sdk/starknet";
+import { resolveFeeConfig } from "@medialane/sdk";
+import { MedialaneClient, feeAmount, feeBps } from "@medialane/sdk/starknet";
 import {
   MEDIALANE_BACKEND_URL,
   MEDIALANE_API_KEY,
@@ -21,6 +22,12 @@ export function medialaneConfig() {
     chain: "STARKNET" as const,
     feeConfig: { enabled: true },
   };
+}
+
+/** What a purchase of `grossAmount` spends: the price plus the platform fee the purchase transfers. */
+export function purchaseTotal(grossAmount: bigint): bigint {
+  const bps = feeBps("marketplace", resolveFeeConfig(medialaneConfig().feeConfig));
+  return grossAmount + feeAmount(grossAmount, bps);
 }
 
 export function getMedialaneClient(): MedialaneClient {
