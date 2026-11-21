@@ -569,6 +569,14 @@ const pt: Catalog = {
   "{verifyError}. Submit a request for our team to review.": "{verifyError}. Envie um pedido para a nossa equipe analisar.",
   "✓ Claim submitted — the Medialane DAO team will review it shortly.": "✓ Reivindicação enviada — a equipe da DAO da Medialane vai analisá-la em breve.",
   "Start here": "Comece aqui",
+  "A drop page to share": "Uma página de drop para compartilhar",
+  "Collectors mint straight from your page.": "Os colecionadores mintam direto da sua página.",
+  "Your price, your supply": "Seu preço, sua quantidade",
+  "Free or paid, as many copies as you choose.": "Grátis ou pago, com quantas cópias você quiser.",
+  "Set how collectors can use the work.": "Defina como os colecionadores podem usar a obra.",
+  "Add your artwork and details": "Adicione sua arte e os detalhes",
+  "Set the price, copies and timing": "Defina o preço, as cópias e o prazo",
+  "Launch, then share your drop page": "Lance e compartilhe a página do seu drop",
 };
 
 export default pt;
