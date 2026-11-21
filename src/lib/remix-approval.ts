@@ -6,7 +6,6 @@ import { createListing, type MarketplaceContext } from "./marketplace-intents";
 
 export interface RemixCollection {
   contractAddress: string;
-  /** Registry id; required for ERC-721 collections, which mint through the registry. */
   collectionId: string | null;
   standard: "ERC721" | "ERC1155";
 }
@@ -19,7 +18,6 @@ export interface RemixApprovalInput {
 
 interface ApprovalOptions {
   pollIntervalMs?: number;
-  /** How long to look for the listing when the backend recorded no order hash. */
   listingWaitMs?: number;
 }
 
@@ -58,17 +56,12 @@ async function findActiveListing(
       const listing = data?.find((o) => o.status === "ACTIVE" && o.offer.itemType === standard);
       if (listing) return listing.orderHash;
     } catch {
-      // The indexer may not have the order yet; look again until the deadline.
     }
     if (Date.now() + LISTING_LOOKUP_INTERVAL_MS > deadline) return null;
     await new Promise((r) => setTimeout(r, LISTING_LOOKUP_INTERVAL_MS));
   }
 }
 
-/**
- * Grants a remix request: mints the derivative into `collection`, lists it at the offered price and
- * records the listing on the offer. Returns the minted token.
- */
 export async function approveRemix(
   ctx: MarketplaceContext,
   { offer, collection, name }: RemixApprovalInput,

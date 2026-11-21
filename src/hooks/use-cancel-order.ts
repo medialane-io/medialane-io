@@ -8,7 +8,6 @@ import { orderNftStandard } from "@/lib/protocol/token-standard";
 
 interface UseCancelOrderOptions {
   onSuccess?: () => void;
-  /** Overrides the NFT standard read from the order. */
   tokenStandard?: string;
 }
 

@@ -23,7 +23,6 @@ const signer = {
   execute: async () => ({ txHash: "0xtx" }),
 };
 
-/** Stands in for useTransaction: hands a tracked signer to the work and reports phases like the real one. */
 function useFakeTransaction() {
   const [state, setState] = useState<{ phase: TransactionPhase; txHash: string | null; error: string | null }>({
     phase: "idle",

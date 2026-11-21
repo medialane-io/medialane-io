@@ -20,7 +20,6 @@ const OFFER = {
   price: { raw: "5000000", formatted: "5", currency: "USDC", decimals: 6 },
 } as unknown as RemixOffer;
 
-/** A backend + chain fake: the mint receipt carries a Transfer from 0 for `mintedId`. */
 function fixture({
   mintedId = "42",
   orderHash = "0xorder" as string | null,

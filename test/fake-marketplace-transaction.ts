@@ -5,17 +5,13 @@ import type { MarketplaceContext } from "@/lib/marketplace-intents";
 interface FakeTransactionControl {
   started: number;
   resets: number;
-  /** When set, start ends in the error phase with this message; `submitted` says whether a transaction was sent first. */
   fail: { message: string; retryable: boolean; submitted: boolean } | null;
-  /** When true, start stays in the confirming phase and never resolves. */
   hang: boolean;
-  /** When true, start runs the work it was given with `ctx`. */
   runWork: boolean;
   ctx: MarketplaceContext;
   clear(): void;
 }
 
-/** A stand-in for useMarketplaceTransaction whose outcome each test sets through `control`. */
 export function createFakeMarketplaceTransaction() {
   const control: FakeTransactionControl = {
     started: 0,

@@ -7,7 +7,6 @@ import { loadSealedOwner } from "@/lib/wallet/store";
 
 export const WALLET_STEP_KEY = "wallet-step";
 
-/** Where the signed-in user's wallet stands on this browser: the backend says whether its setup is finished, the wallet says whether it has this browser's key. */
 export async function checkWalletStep(): Promise<AfterCode> {
   const wallet = await getMedialaneClient().api.account.sessionWallet();
   const local = loadSealedOwner();
@@ -17,6 +16,5 @@ export async function checkWalletStep(): Promise<AfterCode> {
   return walletStep(wallet, { address: local.address, onWallet });
 }
 
-/** Drops the remembered answer so every reader checks again, after onboarding changed the wallet. */
 export const refreshWalletStep = () =>
   mutate((key) => Array.isArray(key) && key[0] === WALLET_STEP_KEY, undefined, { revalidate: true });

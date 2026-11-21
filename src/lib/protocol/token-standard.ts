@@ -19,7 +19,6 @@ export function resolveTokenStandard(
   return "UNKNOWN";
 }
 
-/** The NFT side of an order: the offer for a listing, the consideration for an offer. */
 export function orderNftStandard(order: { offer: { itemType: string }; consideration: { itemType: string } }): string {
   return order.offer.itemType === "ERC20" ? order.consideration.itemType : order.offer.itemType;
 }

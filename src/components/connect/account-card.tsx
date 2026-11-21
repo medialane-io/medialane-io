@@ -24,7 +24,6 @@ interface AccountCardProps extends Partial<AccountHeadingProps> {
   children?: React.ReactNode;
 }
 
-/** Without a title, the content brings its own heading. */
 export function AccountCard({ title, description, icon, children }: AccountCardProps) {
   return (
     <Card className="w-full max-w-sm">
