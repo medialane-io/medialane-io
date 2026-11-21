@@ -19,7 +19,7 @@ export function NavConnectButton() {
         <ActionButton solid small asChild>
           <Link href="/connect" onClick={closeMenu}>
             <UserShieldIcon className="h-3.5 w-3.5" />
-            {t("Connect")}
+            {t("Account")}
           </Link>
         </ActionButton>
         <Kbd />
@@ -39,7 +39,7 @@ export function NavConnectButton() {
         style={{ backgroundColor: "hsl(var(--brand-blue))" }}
       >
         <UserShieldIcon className="h-3.5 w-3.5 text-white" />
-        {t("Connect")}
+        {t("Account")}
       </button>
       <Kbd />
     </span>
