@@ -33,7 +33,7 @@ function ConnectContent() {
 
   return (
     <>
-      <AccountCard title={restoring ? t("Open this account on this device") : TITLE}>
+      <AccountCard title={restoring ? undefined : t(TITLE)}>
         <OnboardingFlow onStepChange={setStep} onDone={onDone} />
       </AccountCard>
       {restoring ? null : <ValuePropCarousel />}
