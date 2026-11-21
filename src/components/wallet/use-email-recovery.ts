@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { describeWalletFailure, detectPasskeySupport, isPasskeyCancelled } from "@medialane/ui";
 import type { WalletRecovery } from "@medialane/sdk";
-import { computeOwnerGuid, finishSessionRecovery, getEscapeSecurityPeriod, startSessionRecovery } from "@medialane/sdk/starknet";
+import { computeOwnerGuid, finishSessionRecovery, startSessionRecovery } from "@medialane/sdk/starknet";
 import { getMedialaneClient } from "@/lib/medialane-client";
 import { ownerStore } from "@/lib/wallet/client";
 import { createOwnerKey } from "@/lib/wallet/passkey";
@@ -32,32 +32,14 @@ const forThisBrowser = (status: WalletRecovery): boolean => {
   );
 };
 
-async function readWaitDays(wallet: string): Promise<number | null> {
-  const seconds = await getEscapeSecurityPeriod(getMedialaneClient().provider, wallet);
-  const days = Math.round(seconds / DAY_SECONDS);
-  return days > 0 ? days : null;
-}
-
 export function useEmailRecovery(wallet: string | undefined, onRecovered: () => void) {
   const [status, setStatus] = useState<WalletRecovery | null | undefined>(undefined);
-  const [waitDays, setWaitDays] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getMedialaneClient().api.account.walletRecovery().then(setStatus).catch(() => setStatus(null));
   }, []);
-
-  useEffect(() => {
-    if (!wallet || !status?.enabled) return;
-    let cancelled = false;
-    readWaitDays(wallet)
-      .then((days) => !cancelled && setWaitDays(days))
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [wallet, status?.enabled]);
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -83,7 +65,7 @@ export function useEmailRecovery(wallet: string | undefined, onRecovered: () => 
   return {
     status,
     mine: !!status && forThisBrowser(status),
-    waitDays,
+    waitDays: Math.round((status?.securityPeriod ?? 0) / DAY_SECONDS),
     busy,
     error,
     start: () => void start(),

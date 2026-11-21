@@ -16,6 +16,7 @@ import { mediaWallet } from "@/lib/wallet/client";
 import { claimSessionWallet } from "@medialane/sdk/starknet";
 import { createOwnerKey } from "@/lib/wallet/passkey";
 import { removeDevice } from "@/lib/wallet/devices";
+import { AccountHeading } from "./account-card";
 import { NewBrowserWallet } from "./new-browser-wallet";
 import { loadSealedOwner, saveSealedOwner, notifyWalletChange } from "@/lib/wallet/store";
 import { afterEmailCheck, afterRegister, isEmailAddress, walletStep } from "@/lib/onboarding/decisions";
@@ -45,9 +46,10 @@ export interface OnboardingFlowProps {
   onDone?: (result: { celebrated: boolean }) => void;
   autoStartWallet?: boolean;
   onStepChange?: (step: OnboardingStep) => void;
+  heading?: { title: string; description?: string };
 }
 
-export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true, onStepChange }: OnboardingFlowProps) {
+export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true, onStepChange, heading }: OnboardingFlowProps) {
   const t = useT();
   const [flow, dispatch] = useReducer(flowReducer, start, initialFlow);
   const [email, setEmail] = useState("");
@@ -230,8 +232,18 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
     </Alert>
   ) : null;
 
+  const withHeading = (body: React.ReactNode) =>
+    heading ? (
+      <div className="w-full space-y-6">
+        <AccountHeading title={heading.title} description={heading.description} />
+        {body}
+      </div>
+    ) : (
+      body
+    );
+
   if (step === "done") {
-    return (
+    return withHeading(
       <div className="flex items-center gap-2 py-2 text-sm text-emerald-500">
         <CheckCircle2 className="h-4 w-4" />
         {t("You're all set.")}
@@ -240,7 +252,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   if (isWalletStep(step)) {
-    return (
+    return withHeading(
       <div className="w-full space-y-3">
         {errorBanner}
         {error ? (
@@ -280,7 +292,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
   }
 
   if (step === "code" || step === "verifying-code") {
-    return (
+    return withHeading(
       <div className="w-full space-y-3">
         {errorBanner}
         <p className="text-sm text-muted-foreground">
@@ -293,7 +305,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const busy = step === "checking-email" || step === "registering";
 
-  return (
+  return withHeading(
     <div className="w-full space-y-3">
       {errorBanner}
       <Input

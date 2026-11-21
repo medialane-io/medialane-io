@@ -33,8 +33,8 @@ function ConnectContent() {
 
   return (
     <>
-      <AccountCard title={restoring ? undefined : t(TITLE)}>
-        <OnboardingFlow onStepChange={setStep} onDone={onDone} />
+      <AccountCard>
+        <OnboardingFlow heading={{ title: t(TITLE) }} onStepChange={setStep} onDone={onDone} />
       </AccountCard>
       {restoring ? null : <ValuePropCarousel />}
     </>

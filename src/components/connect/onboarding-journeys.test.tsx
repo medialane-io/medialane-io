@@ -10,8 +10,8 @@ const NEW_WALLET_LINK = "Start a new wallet";
 const WALLET = "0x01575d29b83d7828cd1d833ef785083b809adeb187b6ac14aab21db568f2bf02";
 
 const api = { account: { emailExists: mock(async (_email: string) => false), registerEmailAccount: mock(async (_email: string) => ({})), requestEmailCode: mock(async (_email: string) => ({})), verifyEmailCode: mock(async (_email: string, _code: string) => ({})), upsertMyWallet: mock(async (..._args: unknown[]) => ({})), sessionWallet: (...args: unknown[]) => getSessionWallet(...args), walletRecovery: (...args: unknown[]) => getRecovery(...args), startWalletRecovery: (...args: unknown[]) => startRecovery(...args), completeWalletRecovery: (...args: unknown[]) => completeRecovery(...args), contactSupport: mock(async (_params: { message?: string }) => undefined) } };
-type Recovery = { enabled: boolean; state: "none" | "waiting" | "ready"; readyAt: number | null; newOwnerGuid: string | null; guardianPubkey: string | null };
-const RECOVERY_OFF: Recovery = { enabled: false, state: "none", readyAt: null, newOwnerGuid: null, guardianPubkey: null };
+type Recovery = { enabled: boolean; state: "none" | "waiting" | "ready"; readyAt: number | null; securityPeriod: number | null; newOwnerGuid: string | null; guardianPubkey: string | null };
+const RECOVERY_OFF: Recovery = { enabled: false, state: "none", readyAt: null, securityPeriod: null, newOwnerGuid: null, guardianPubkey: null };
 const getRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
 const startRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
 const completeRecovery = mock(async (..._args: unknown[]): Promise<Recovery> => RECOVERY_OFF);
@@ -27,7 +27,6 @@ const real = {
   })),
   starknet: await mockForThisFile("@medialane/sdk/starknet", {
     claimSessionWallet: claimSessionWallet as never,
-    getEscapeSecurityPeriod: (async () => 7 * 86_400) as never,
   }),
 };
 let localOwner: { address: string } | null = null;
@@ -423,7 +422,7 @@ describe("when the passkey step fails", () => {
 });
 
 describe("recovering by email on a new browser", () => {
-  const ON: Recovery = { ...RECOVERY_OFF, enabled: true };
+  const ON: Recovery = { ...RECOVERY_OFF, enabled: true, securityPeriod: 7 * 86_400 };
   const reachRecoveryStep = async () => {
     api.account.emailExists.mockImplementation(async () => true);
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
