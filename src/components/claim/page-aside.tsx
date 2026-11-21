@@ -130,6 +130,14 @@ const ASIDES = {
     trustLead: msg("Your tickets, your rules."),
     trust: msg("Holders keep their tickets forever."),
   },
+  drop: {
+    included: [
+      { icon: Share2, title: msg("A drop page to share"), desc: msg("Collectors mint straight from your page.") },
+      { icon: Coins, title: msg("Your price, your supply"), desc: msg("Free or paid, as many copies as you choose.") },
+      { icon: Scale, title: msg("Licensing you control"), desc: msg("Set how collectors can use the work.") },
+    ],
+    steps: [msg("Add your artwork and details"), msg("Set the price, copies and timing"), msg("Launch, then share your drop page")],
+  },
   mintEdition: {
     included: [
       { icon: Sparkles, title: msg("A new piece"), desc: msg("Mint a new artwork into your collection.") },
@@ -145,14 +153,14 @@ const ASIDES = {
 
 export function PageAside({ kind }: { kind: keyof typeof ASIDES }) {
   const t = useT();
-  const { included, steps, trustLead, trust, ...rest } = ASIDES[kind];
+  const { included = [], steps, trustLead, trust, trustIcon }: RailProps = ASIDES[kind];
   return (
     <ClaimRail
-      {...rest}
+      trustIcon={trustIcon}
       included={included.map((item) => ({ ...item, title: t(item.title), desc: t(item.desc) }))}
       steps={steps.map((step) => t(step))}
-      trustLead={t(trustLead)}
-      trust={t(trust)}
+      trustLead={trustLead ? t(trustLead) : undefined}
+      trust={trust ? t(trust) : undefined}
     />
   );
 }
