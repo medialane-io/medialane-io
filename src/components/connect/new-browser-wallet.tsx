@@ -110,9 +110,7 @@ export function NewBrowserWallet({
         <div className="space-y-3 text-center text-sm text-muted-foreground">
           <p>{t("Medialane accounts are smart contracts owned by their holders. No one else can access them, not even Medialane.")}</p>
           <p>
-            {waitDays === null
-              ? t("A waiting period keeps every recovery secure.")
-              : t.plural("A {count}-day wait keeps every recovery secure.", "A {count}-day wait keeps every recovery secure.", waitDays)}{" "}
+            {t.plural("A {count}-day wait keeps every recovery secure.", "A {count}-day wait keeps every recovery secure.", waitDays)}{" "}
             {t("An email arrives when the account is ready.")}
           </p>
         </div>
@@ -168,9 +166,7 @@ export function NewBrowserWallet({
   const emailDescription =
     status && status.state !== "none"
       ? t("Replaces the recovery already started.")
-      : waitDays === null
-        ? t("Available after a waiting period.")
-        : t.plural("Available in {count} day.", "Available in {count} days.", waitDays);
+      : t.plural("Available in {count} day.", "Available in {count} days.", waitDays);
 
   return (
     <div className="w-full space-y-6">

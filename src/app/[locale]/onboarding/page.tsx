@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "@medialane/ui/router";
 import { AccountCard } from "@/components/connect/account-card";
-import { OnboardingFlow, type OnboardingStep } from "@/components/connect/onboarding-flow";
+import { OnboardingFlow } from "@/components/connect/onboarding-flow";
 import { useSession } from "@medialane/ui/utils/use-session";
 import { useRedirectWhenDone } from "@/hooks/use-redirect-when-done";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
@@ -29,7 +29,6 @@ function OnboardingContent() {
   const { hasWallet } = useWalletNativeSession();
   const redirectTo = safeRelativePath(searchParams.get("redirect_url")) ?? "/airdrop";
   const onDone = useRedirectWhenDone(redirectTo);
-  const [step, setStep] = useState<OnboardingStep>("email");
 
   const needsSignIn = !isLoading && (!session || (!!session.walletAddress && !hasWallet));
 
@@ -40,11 +39,12 @@ function OnboardingContent() {
   if (isLoading || needsSignIn || !session) return null;
 
   return (
-    <AccountCard
-      title={step === "restore-key" ? undefined : t("Secure your account")}
-      description={t("Finish setting up your account.")}
-    >
-      <OnboardingFlow start="wallet" onDone={onDone} onStepChange={setStep} />
+    <AccountCard>
+      <OnboardingFlow
+        start="wallet"
+        heading={{ title: t("Secure your account"), description: t("Finish setting up your account.") }}
+        onDone={onDone}
+      />
     </AccountCard>
   );
 }
