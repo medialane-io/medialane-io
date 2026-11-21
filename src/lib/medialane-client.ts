@@ -24,10 +24,14 @@ export function medialaneConfig() {
   };
 }
 
+/** The platform fee on a purchase, in basis points. */
+export function marketplaceFeeBps(): number {
+  return feeBps("marketplace", resolveFeeConfig(medialaneConfig().feeConfig));
+}
+
 /** What a purchase of `grossAmount` spends: the price plus the platform fee the purchase transfers. */
 export function purchaseTotal(grossAmount: bigint): bigint {
-  const bps = feeBps("marketplace", resolveFeeConfig(medialaneConfig().feeConfig));
-  return grossAmount + feeAmount(grossAmount, bps);
+  return grossAmount + feeAmount(grossAmount, marketplaceFeeBps());
 }
 
 export function getMedialaneClient(): MedialaneClient {
