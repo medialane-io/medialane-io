@@ -88,7 +88,7 @@ const settle = () => act(() => new Promise<void>((resolve) => setTimeout(resolve
 
 async function enterEmail(email: string) {
   await mount(<OnboardingFlow onDone={onDone} />);
-  await type(screen.getByPlaceholderText("you@example.com"), email);
+  await type(screen.getByPlaceholderText("name@example.com"), email);
   await click(screen.getByRole("button", { name: "Continue" }));
 }
 
@@ -155,7 +155,7 @@ describe("someone with a sign-in cookie whose wallet is not on this browser", ()
     session = { email: "signed-in@example.com", walletAddress: WALLET };
     getSessionWallet.mockImplementation(async () => ({ walletAddress: WALLET, needsKeySetup: false }));
     await mount(<OnboardingFlow onDone={onDone} />);
-    await waitFor(() => screen.getByPlaceholderText("you@example.com"));
+    await waitFor(() => screen.getByPlaceholderText("name@example.com"));
     expect(completeDeployment).not.toHaveBeenCalled();
     expect(claimSessionWallet).not.toHaveBeenCalled();
     expect(getSessionWallet).not.toHaveBeenCalled();
@@ -177,7 +177,7 @@ describe("someone signed in whose account has no wallet yet", () => {
 describe("an address that is not an email", () => {
   test("gets a clear message and nothing is sent", async () => {
     await enterEmail("bfjsdbkfjs");
-    await waitFor(() => expect(screen.getByText("Please enter your full email address, like name@example.com.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Enter a full email address, like name@example.com.")).toBeTruthy());
     expect(api.account.emailExists).not.toHaveBeenCalled();
   });
 });
@@ -245,7 +245,7 @@ describe("an address that already has an account", () => {
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     await type(input, real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }));
-    await click(screen.getByRole("button", { name: /Restore my account/ }));
+    await click(screen.getByRole("button", { name: /Restore account/ }));
     await waitFor(() => expect(done).toEqual([{ celebrated: false }]));
   });
 
@@ -259,8 +259,8 @@ describe("an address that already has an account", () => {
     const input = await waitFor(() => screen.getByPlaceholderText("medialane-recovery:v1:…"));
     const { privateKeyHex } = real.starknet.generateStarkKeyPair();
     await type(input, real.starknet.encodeRecoveryKey({ walletAddress: WALLET, privateKey: privateKeyHex }));
-    await click(screen.getByRole("button", { name: /Restore my account/ }));
-    await waitFor(() => expect(screen.getByText(/does not open this account/)).toBeTruthy());
+    await click(screen.getByRole("button", { name: /Restore account/ }));
+    await waitFor(() => expect(screen.getByText(/Paste the full recovery key for this account/)).toBeTruthy());
     expect(done).toEqual([]);
   });
 
@@ -305,7 +305,7 @@ describe("an address that already has an account", () => {
     await enterCode();
     await click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
     await click(await waitFor(() => screen.getByRole("button", { name: "Send" })));
-    await waitFor(() => screen.getByText(/we've got your message/));
+    await waitFor(() => screen.getByText(/Message sent/));
     expect(api.account.contactSupport).toHaveBeenCalledWith({ message: undefined });
   });
 
@@ -334,8 +334,8 @@ describe("an address that already has an account", () => {
     await enterEmail("new-browser@example.com");
     await enterCode();
     await click(await waitFor(() => screen.getByRole("button", { name: "Use a different email" })));
-    await waitFor(() => screen.getByPlaceholderText("you@example.com"));
-    expect((screen.getByPlaceholderText("you@example.com") as HTMLInputElement).value).toBe("");
+    await waitFor(() => screen.getByPlaceholderText("name@example.com"));
+    expect((screen.getByPlaceholderText("name@example.com") as HTMLInputElement).value).toBe("");
     expect(fetchMock.mock.calls[0]).toEqual(["/api/session", { method: "DELETE" }]);
     expect(completeDeployment).not.toHaveBeenCalled();
     globalThis.fetch = realFetch;
@@ -411,7 +411,7 @@ describe("when the passkey step fails", () => {
       throw unsupported;
     });
     await enterEmail("no-prf@example.com");
-    await waitFor(() => expect(screen.getByText(/Your account setup is not complete/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Setup can pick up where it left off/)).toBeTruthy());
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(done).toEqual([]);
     await click(screen.getByRole("button", { name: "Try again" }));

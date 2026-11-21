@@ -76,7 +76,7 @@ export function NewBrowserWallet({
         <AccountHeading title={welcome} />
         <div className="flex w-full items-center justify-center gap-2 py-2.5 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          {t("Checking account")}
+          {t("Checking account…")}
         </div>
       </div>
     );
@@ -149,7 +149,7 @@ export function NewBrowserWallet({
           <div className="space-y-1">
             <p className="text-sm font-medium">{t("Start a new wallet?")}</p>
             <p className="text-sm text-muted-foreground">
-              {t("This account gets a fresh wallet. The current wallet's contents won't show up in the new one automatically.")}
+              {t("This account gets a fresh wallet. Everything in the current wallet stays there.")}
             </p>
           </div>
           <Button variant="soft" className={OPTION_CLASS} onClick={onStartNew}>

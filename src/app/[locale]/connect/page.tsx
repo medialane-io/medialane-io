@@ -9,7 +9,7 @@ import { useRedirectWhenDone } from "@/hooks/use-redirect-when-done";
 import { safeRelativePath } from "@/lib/safe-redirect";
 import { msg, useT } from "@medialane/ui/i18n";
 
-const TITLE = msg("Connect with your email");
+const TITLE = msg("Connect with email");
 
 export default function ConnectPage() {
   const t = useT();

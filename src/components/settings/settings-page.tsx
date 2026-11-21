@@ -4,7 +4,6 @@ import { ServiceFormShell, cn, ActionButton } from "@medialane/ui";
 import Link from "@medialane/ui/link";
 import type { ElementType, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Settings as SettingsIcon, Wallet } from "lucide-react";
-import { Button } from "@medialane/ui/button";
 import { Skeleton } from "@medialane/ui/skeleton";
 import { useWalletNativeSession } from "@/hooks/use-wallet-native-session";
 import type { RowStatus, RowTone } from "@/lib/settings/rows";
