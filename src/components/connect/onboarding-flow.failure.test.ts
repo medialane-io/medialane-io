@@ -8,7 +8,7 @@ describe("what someone is told when the wallet cannot be made", () => {
     const notice = describeWalletFailure(unsupported("no-prf"));
     expect(notice.kind).toBe("unsupported-passkey");
     expect(notice.canRetry).toBe(true);
-    expect(notice.message).toBe("Update your browser, or open Medialane on another device, then try again.");
+    expect(notice.message).toBe("Update the browser and try again.");
   });
 
   test("no passkeys at all is not offered a retry that cannot work", () => {
@@ -24,11 +24,11 @@ describe("what someone is told when the wallet cannot be made", () => {
   test("any other failure is short and may be retried", () => {
     const notice = describeWalletFailure(new Error("socket hang up"));
     expect(notice.canRetry).toBe(true);
-    expect(notice.message).toBe("We couldn't finish setting up your account. Please try again.");
+    expect(notice.message).toBe("Try again.");
   });
 
   test("a failure that is not an Error still produces a message", () => {
-    expect(describeWalletFailure("boom").message).toBe("We couldn't finish setting up your account. Please try again.");
+    expect(describeWalletFailure("boom").message).toBe("Try again.");
   });
 
   test("the message never names a browser we have not verified", () => {
