@@ -256,11 +256,6 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
       <div className="w-full space-y-3">
         {errorBanner}
         {error ? (
-          <p className="text-xs text-muted-foreground">
-            {t("Setup can pick up where it left off. Try again or contact support.")}
-          </p>
-        ) : null}
-        {error ? (
           canRetry ? (
             <Button onClick={retryWallet} size="lg" className="w-full">
               {t("Try again")}
