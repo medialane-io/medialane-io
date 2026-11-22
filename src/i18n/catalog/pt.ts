@@ -427,7 +427,7 @@ const pt: Catalog = {
   "Setting up the wallet…": "Configurando a carteira…",
   "Setup complete": "Configuração concluída",
   "Share the claim link with attendees": "Compartilhe o link de resgate com os participantes",
-  "Share your collection in a single, clean link.": "Compartilhe sua coleção em um único link limpo.",
+  "Share your collection.": "Compartilhe sua coleção.",
   "Sign in first": "Entre primeiro",
   "Sign in with a glance": "Entre com um olhar",
   "Sign in with another address.": "Entre com outro endereço.",

@@ -16,7 +16,7 @@ const ASIDES = {
     included: [
       { icon: LayoutGrid, title: msg("Branded collection page"), desc: msg("Custom name, cover, banner and links — all editable.") },
       { icon: UserCircle, title: msg("Linked to your profile"), desc: msg("It shows up on your public profile.") },
-      { icon: Link2, title: msg("One shareable URL"), desc: msg("Share your collection in a single, clean link.") },
+      { icon: Link2, title: msg("One shareable URL"), desc: msg("Share your collection.") },
     ],
     steps: [msg("Paste your collection's contract address"), msg("We verify you own it on-chain"), msg("It goes live on your profile")],
     trustLead: msg("Non-custodial."),
