@@ -397,7 +397,7 @@ describe("when the passkey step fails", () => {
       throw cancelled;
     });
     await enterEmail("closed@example.com");
-    await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|Passkeys aren't available/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|regular browser window/)).toBeTruthy());
     expect(done).toEqual([]);
     await click(screen.getByRole("button", { name: "Try again" }));
     await waitFor(() => expect(done).toEqual([{ celebrated: true }]));
@@ -411,7 +411,7 @@ describe("when the passkey step fails", () => {
       throw unsupported;
     });
     await enterEmail("no-prf@example.com");
-    await waitFor(() => expect(screen.getByText(/Update your browser, or open Medialane on another device/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Update the browser and try again/)).toBeTruthy());
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(done).toEqual([]);
     await click(screen.getByRole("button", { name: "Try again" }));
@@ -477,7 +477,7 @@ describe("recovering by email on a new browser", () => {
     createKeyError = Object.assign(new Error("closed"), { name: "PasskeyCancelledError" });
     await reachRecoveryStep();
     await click(await waitFor(() => screen.getByRole("button", { name: EMAIL_OPTION })));
-    await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|Passkeys aren't available/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/The passkey prompt was closed|regular browser window/)).toBeTruthy());
     expect(startRecovery).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: EMAIL_OPTION })).toBeTruthy();
   });
