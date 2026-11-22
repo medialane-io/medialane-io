@@ -115,7 +115,7 @@ const ASIDES = {
       { icon: Ticket, title: msg("Theirs to keep"), desc: msg("It stays in their account — a real record they were there.") },
       { icon: LayoutGrid, title: msg("A branded event page"), desc: msg("A page for the event, with a shareable claim link.") },
     ],
-    steps: [msg("Add the event details and image"), msg("Publish it — it's free"), msg("Share the claim link with attendees")],
+    steps: [msg("Add the event details and image"), msg("Publish it — it's free"), msg("Share the link")],
     trustIcon: Gift,
     trustLead: msg("Owned outright, free."),
     trust: msg("The creator owns the collection — Medialane never takes custody, and there are no fees to publish."),
