@@ -53,7 +53,7 @@ export default function SettingsHomePage() {
           <SettingsRow
             href="/settings/profile"
             icon={User}
-            label={t("Username, name & links")}
+            label={t("Profile details")}
             status={usernameRow(username, claim?.status ?? null)}
           />
           <SettingsRow href="/settings/appearance" icon={ImageIcon} label={t("Avatar & theme")} />

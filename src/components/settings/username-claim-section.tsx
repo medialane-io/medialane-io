@@ -28,7 +28,7 @@ export function UsernameClaimSection() {
         disabled={!address}
       />
       {username.claimStatus === "success" ? (
-        <p className="text-sm text-emerald-500">{t("✓ Claim submitted — the Medialane DAO team will review it shortly.")}</p>
+        <p className="text-sm text-emerald-500">{t("Claim submitted for DAO review.")}</p>
       ) : null}
       {username.claimStatus === "error" && username.claimError ? (
         <ClaimError error={username.claimError} onVerifyEmail={() => router.push("/settings/email")} />
@@ -68,7 +68,7 @@ export function UsernameClaimSection() {
             </Badge>
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            <span className="font-medium tabular-nums text-foreground">@{claim.username}</span> {t("is awaiting DAO review. You'll be notified by email once processed.")}
+            <span className="font-medium tabular-nums text-foreground">@{claim.username}</span> {t("is in DAO review.")}
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@ export function UsernameClaimSection() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">{t.rich("Get a shareable URL like {span}. Claims are reviewed by the Medialane DAO team to prevent impersonation.", { span: <span className="tabular-nums text-foreground">{t("medialane.io/creator/yourname")}</span> })}</p>
+      <p className="text-sm text-muted-foreground">{t.rich("A shareable URL like {span} after DAO review.", { span: <span className="tabular-nums text-foreground">{t("medialane.io/creator/yourname")}</span> })}</p>
       {claimInput}
     </div>
   );

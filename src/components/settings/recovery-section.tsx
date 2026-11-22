@@ -65,14 +65,14 @@ export function RecoverySection() {
     <AccountSection
       icon={LifeBuoy}
       title={t("Recovery by email")}
-      description={t("Recovery by email gives this wallet a guardian: a backup key kept by the service and unique to this wallet. With the guardian in place, signing in with the account email on a new browser brings the wallet back, so it stays available on any browser.")}
+      description={t("A backup key brings this wallet back on any browser through the account email.")}
     >
       {status.state !== "none" && (
         <Alert variant="destructive">
           <ShieldAlert className="h-4 w-4" />
-          <AlertDescription>{t.rich("A recovery has started for your wallet. {value} Recovery can be stopped with the button below.{button}", { value: status.state === "ready"
-              ? "It can finish at any time."
-              : `It can finish on ${intl.dateTime(new Date((status.readyAt ?? 0) * 1000))}.`, button: <Button onClick={cancel} disabled={busy !== null} variant="destructive" size="sm" className="mt-2 w-full">
+          <AlertDescription>{t.rich("{value}{button}", { value: status.state === "ready"
+              ? t("Recovery can finish anytime.")
+              : t("Recovery finishes on {value}.", { value: intl.date((status.readyAt ?? 0) * 1000, { month: "short", day: "numeric" }) }), button: <Button onClick={cancel} disabled={busy !== null} variant="destructive" size="sm" className="mt-2 w-full">
               {busy === "cancel" && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
               {t("Cancel recovery")}
             </Button> })}

@@ -21,7 +21,7 @@ const JOURNEYS = [
   {
     icon: ShoppingBag,
     label: msg("Explore the marketplace"),
-    description: msg("Buy, sell and collect programmable digital assets from creators worldwide."),
+    description: msg("Collect digital assets from creators worldwide."),
     href: "/marketplace",
     accent: "bg-brand-blue/10 border-brand-blue/20",
     iconColor: "text-brand-blue",
@@ -29,7 +29,7 @@ const JOURNEYS = [
   {
     icon: Pencil,
     label: msg("Create a digital asset"),
-    description: msg("Mint your music, art, or content on-chain with programmable licensing."),
+    description: msg("Publish music and art with built-in licensing."),
     href: "/launchpad/single-editions",
     accent: "bg-brand-purple/10 border-brand-purple/20",
     iconColor: "text-brand-purple",
@@ -45,7 +45,7 @@ const JOURNEYS = [
   {
     icon: Award,
     label: msg("Claim a POP credential"),
-    description: msg("Collect soulbound proof-of-participation NFTs from events you attended."),
+    description: msg("Collect proof of attendance from events."),
     href: "/launchpad/pop",
     accent: "bg-emerald-500/10 border-emerald-500/20",
     iconColor: "text-emerald-400",
@@ -61,12 +61,12 @@ const HIGHLIGHTS = [
   {
     icon: Shield,
     label: msg("Programmable licensing"),
-    description: msg("Embed Berne Convention rights, royalties, and AI policy on-chain."),
+    description: msg("Set rights and AI policy for each work."),
   },
   {
     icon: Globe,
     label: msg("Starknet mainnet"),
-    description: msg("All assets are real, permanent, and permissionlessly verifiable."),
+    description: msg("Every asset is permanent and verifiable."),
   },
 ] as const;
 
@@ -174,7 +174,7 @@ export function WelcomePageClient() {
             <span className="text-primary">{t("on-chain.")}</span>
           </h1>
           <p className="mt-3 text-base text-muted-foreground max-w-xl">
-            {t("Mint, monetize, trade, and collect creative assets, rwa and nfts.")}
+            {t("Create and trade creative assets.")}
           </p>
         </div>
       </FadeIn>

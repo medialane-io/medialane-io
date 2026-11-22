@@ -54,7 +54,7 @@ export default function PortfolioLicensingPage() {
           </div>
         ) : incoming.length === 0 ? (
           <div className="rounded-xl border border-border p-8 text-center text-sm text-muted-foreground">
-            {t("No license requests yet. When someone requests to license your assets for a remix, they'll appear here.")}
+            {t("Remix license requests appear here.")}
           </div>
         ) : (
           <div className="rounded-xl border border-border divide-y divide-border">

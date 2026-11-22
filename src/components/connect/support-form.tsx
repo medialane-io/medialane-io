@@ -36,7 +36,7 @@ export function SupportForm({ onBack }: { onBack: () => void }) {
     return (
       <div className="w-full space-y-4">
         <p className="text-sm text-muted-foreground">
-          {t("Message sent. The reply goes to")} <span className="text-foreground">{email}</span>.
+          {t("Support replies to")} <span className="text-foreground">{email}</span>.
         </p>
         <Button variant="ghost" className="w-full" onClick={onBack}>
           {t("Back")}

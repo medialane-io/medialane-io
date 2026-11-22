@@ -95,7 +95,7 @@ const POP_FEATURES = [
   {
     icon: Award,
     title: msg("Soulbound Credential"),
-    desc: msg("Non-transferable — permanently tied to your account onchain."),
+    desc: msg("Tied to the account for good."),
   },
   {
     icon: Users,
@@ -105,7 +105,7 @@ const POP_FEATURES = [
   {
     icon: Zap,
     title: msg("Free to claim"),
-    desc: msg("No protocol fee — participants claim one credential per event."),
+    desc: msg("One free claim per event."),
   },
   {
     icon: ShieldCheck,
@@ -134,7 +134,7 @@ export function PopContent() {
               plain
               icon={<Award className="h-4 w-4 text-white" />}
               title={t("POP events")}
-              subtitle={t("Immutable certificates for authenticity. Browse events or create one.")}
+              subtitle={t("Browse events or create one.")}
             />
           </div>
         </FadeIn>
@@ -200,7 +200,7 @@ export function PopContent() {
                 <Award className="h-10 w-10 text-muted-foreground/20" />
               </div>
               <p className="text-sm text-muted-foreground">
-                {t("No active POP events right now. Check back after your next event.")}
+                {t("Events appear here when live.")}
               </p>
             </div>
           </FadeIn>

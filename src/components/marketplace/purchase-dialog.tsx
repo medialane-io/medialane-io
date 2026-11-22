@@ -98,7 +98,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
       open={open}
       onOpenChange={handleClose}
       title={isSuccess ? t("Purchase complete") : busy ? t("Processing purchase") : t("Buy now")}
-      description={t("Confirm and complete this marketplace purchase with your Medialane wallet.")}
+      description={t("Confirm the purchase.")}
     >
       <TransactionDialogStates
         phase={phase}
@@ -116,7 +116,7 @@ export function PurchaseDialog({ order, open, onOpenChange, onSuccess }: Purchas
         ]}
         successChildren={<RewardEarned actionType="buy_asset" />}
         errorTitle={t("Purchase failed")}
-        errorDescription={t("The transaction was submitted, but the purchase could not be completed.")}
+        errorDescription={t("The purchase did not complete.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >

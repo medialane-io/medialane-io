@@ -39,9 +39,9 @@ export function AirdropEventCard() {
 const COPY: GenesisMintCopy = {
   preparing: msg("Preparing your record…"),
   submitting: msg("Confirming participation…"),
-  noAccount: msg("Account not found. Please try again."),
+  noAccount: msg("Account not found."),
   notStarted: msg("Airdrop has not started yet."),
-  ready: msg("Account active, mint your passport"),
+  ready: msg("Mint your passport"),
   claim: msg("Claim my spot"),
   claimUnavailable: msg("Airdrop not started yet"),
   working: msg("Registering your participation…"),
@@ -51,7 +51,7 @@ const COPY: GenesisMintCopy = {
   successBody: msg("Your participation is confirmed."),
   create: "Create",
   explore: "Explore",
-  again: msg("Didn't mint your passport? Try again"),
+  again: msg("Mint again"),
   failedTitle: msg("Could not complete"),
   retry: msg("Try again"),
 };

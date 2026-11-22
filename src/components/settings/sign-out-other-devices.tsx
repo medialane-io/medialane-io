@@ -33,7 +33,7 @@ export function SignOutOtherDevices() {
       {state.kind === "done" && <p className="text-sm">{t("Other devices are signed out.")}</p>}
       {state.kind === "error" && <p className="text-sm text-destructive">{state.message}</p>}
       <p className="text-sm text-muted-foreground">
-        {t("Devices listed above can still sign in with their key. Remove a device to stop that.")}
+        {t("Remove a device to end its access.")}
       </p>
     </div>
   );

@@ -94,7 +94,7 @@ export function CounterOfferDialog({
       open={open}
       onOpenChange={handleClose}
       title={t("Send a counter-offer")}
-      description={t("Propose a different price to the buyer. Your NFT will be listed as a counter-offer, verifiable onchain.")}
+      description={t("Propose a different price to the buyer.")}
     >
       <TransactionDialogStates
         phase={phase}
@@ -103,7 +103,7 @@ export function CounterOfferDialog({
         error={error}
         success={successMessages.countered({ name, price: `${pendingValues?.price} ${currencySymbol}` }, t)}
         errorTitle={t("Counter-offer failed")}
-        errorDescription={t("The transaction was submitted, but the counter-offer could not be completed.")}
+        errorDescription={t("The counter-offer did not complete.")}
         onRetry={reset}
         onDone={() => handleClose(false)}
       >

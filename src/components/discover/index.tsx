@@ -6,5 +6,5 @@ import { useMarketActions } from "@/lib/use-market-actions";
 
 export function DiscoverPage() {
   const t = useT();
-  return <SharedDiscoverPage useMarketActions={useMarketActions} heroHeadline={t("Explore, share & trade")} />;
+  return <SharedDiscoverPage useMarketActions={useMarketActions} heroHeadline={t("Explore and trade")} />;
 }

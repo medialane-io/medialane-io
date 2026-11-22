@@ -121,7 +121,7 @@ export function CoinExploreClient({ address }: { address: string }) {
               )}
             </div>
           ) : status === "pre-launch" ? (
-            <p className="text-sm text-muted-foreground">{t("Not trading yet. Liquidity has not been launched for this coin.")}</p>
+            <p className="text-sm text-muted-foreground">{t("Trading opens once liquidity launches.")}</p>
           ) : (
             <p className="text-sm text-muted-foreground">{t("Price unavailable right now.")}</p>
           )}

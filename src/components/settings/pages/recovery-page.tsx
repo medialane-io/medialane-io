@@ -39,7 +39,7 @@ export default function RecoverySettingsPage() {
           <AccountSection
             icon={LogIn}
             title={t("Recover with your key")}
-            description={t("Paste a recovery key to make its wallet the active wallet on this account.")}
+            description={t("Paste a recovery key to switch wallets.")}
           >
             <Button onClick={() => setRecoverOpen(true)} variant="soft" size="sm">
               {t("Enter recovery key")}

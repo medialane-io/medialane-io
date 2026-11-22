@@ -110,7 +110,7 @@ export function OfferDialog({
       open={open}
       onOpenChange={handleClose}
       title={`Make an offer on ${name}`}
-      description={t("Set your offer price, currency, and duration to place an onchain offer.")}
+      description={t("Set the offer price and duration.")}
     >
       <TransactionDialogStates
         phase={phase}
@@ -121,7 +121,7 @@ export function OfferDialog({
         successActions={[{ label: t("Done"), onClick: () => onOpenChange(false) }]}
         successChildren={<RewardEarned actionType="make_offer" />}
         errorTitle={t("Offer failed")}
-        errorDescription={t("The transaction was submitted, but the offer could not be completed.")}
+        errorDescription={t("The offer did not complete.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >
@@ -167,7 +167,7 @@ export function OfferDialog({
                   {balanceSufficient === false && (
                     <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/8 px-3 py-2.5">
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">{t("Your {watchedCurrency} balance may be insufficient for this offer. You can still submit — the payment is only charged when the offer is accepted.", { watchedCurrency })}</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 leading-snug">{t("Payment in {watchedCurrency} is charged only on acceptance.", { watchedCurrency })}</p>
                     </div>
                   )}
 
@@ -178,7 +178,7 @@ export function OfferDialog({
                       <HandCoins className="h-4 w-4" />
                       {t("Submit offer")}
                     </ActionButton>
-                    <DialogNote>{t("Offers are fully onchain and permissionless. Funds are escrowed until the trade settles.")}</DialogNote>
+                    <DialogNote>{t("Funds are held until the trade settles.")}</DialogNote>
                   </div>
 
                 </form>

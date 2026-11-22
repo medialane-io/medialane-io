@@ -6,7 +6,7 @@ import { msg } from "@medialane/ui/i18n";
 export const generateMetadata = pageMetadata({
   path: "/search",
   title: msg("Search"),
-  description: msg("Search assets, collections and creators on Medialane."),
+  description: msg("Search Medialane."),
   social: false,
 });
 

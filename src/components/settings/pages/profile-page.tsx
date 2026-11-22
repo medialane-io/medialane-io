@@ -34,7 +34,7 @@ export default function ProfileSettingsPage() {
           onChange={(e) => setField(key, e.target.value)}
           className={invalid ? "border-destructive focus-visible:ring-destructive" : ""}
         />
-        {invalid ? <p className="text-xs text-destructive">{t("Must start with http://, https://, or ipfs://")}</p> : null}
+        {invalid ? <p className="text-xs text-destructive">{t("Use a web or ipfs link")}</p> : null}
       </div>
     );
   };
@@ -43,7 +43,7 @@ export default function ProfileSettingsPage() {
     <SettingsGate>
       <SettingsPage
         title={t("Profile")}
-        subtitle={t("Your username, name and links.")}
+        subtitle={t("Profile details.")}
         icon={<User className="h-4 w-4 text-white" />}
         aside={
           <ProfileLivePreview form={form} approvedUsername={approvedUsername} walletAddress={address} fallbackImage={undefined} />

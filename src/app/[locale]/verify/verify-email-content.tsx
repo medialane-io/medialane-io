@@ -96,7 +96,7 @@ export default function VerifyEmailContent() {
               </div>
             </div>
             <CardTitle>{t("You're all set")}</CardTitle>
-            <CardDescription>{t("Your email is confirmed. Your account is fully unrestricted.")}</CardDescription>
+            <CardDescription>{t("Email confirmed.")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ActionButton solid onClick={() => router.back()} className="w-full">

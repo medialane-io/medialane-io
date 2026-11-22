@@ -153,7 +153,7 @@ export function CoinSwapWidget({
       {action.error && <p className="px-1 text-xs text-destructive">{action.error}</p>}
       {action.phase === "success" && (
         <p className="px-1 text-xs text-emerald-500">
-          {side === "buy" ? "Bought" : "Sold"} {coinSymbol}{t(". Balances update in a few seconds.")}
+          {side === "buy" ? "Bought" : "Sold"} {coinSymbol}{t(". Balances update shortly.")}
         </p>
       )}
 

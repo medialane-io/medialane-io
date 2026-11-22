@@ -43,7 +43,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
       onRestored();
     } catch (e) {
       if (e instanceof InvalidRecoveryKeyError) {
-        setErr(t("Paste the full recovery key, starting with medialane-recovery."));
+        setErr(t("Paste the full medialane-recovery key."));
       } else {
         setErr(describeError(e).message);
       }
@@ -54,7 +54,7 @@ export function RecoveryKeyRestore({ onRestored }: { onRestored: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground leading-relaxed">
-        {t("Paste the recovery key saved from Settings. This device then asks for a new passkey to protect it.")}
+        {t("Paste the recovery key from Settings.")}
       </p>
       <Input
         value={keyInput}

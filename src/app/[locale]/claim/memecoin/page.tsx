@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("Claim memecoin");
-const description = msg("Already launched a coin on Starknet? Bring it to Medialane so people can discover and trade it.");
+const description = msg("Bring a Starknet coin to Medialane.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/memecoin",
@@ -21,11 +21,11 @@ export default function MemecoinClaimPage() {
     <ClaimRouteShell
       icon={<Coins className="h-4 w-4 text-white" />}
       title={msg("Claim a memecoin")}
-      subtitle={msg("Already launched a coin on Starknet? Add it so people can discover and trade it.")}
+      subtitle={msg("Add a Starknet coin for trading.")}
       aside={<PageAside kind="claimMemecoin" />}
     >
       <ClaimGate>
-        <ClaimCollectionPanel kind="coin" helperText="Paste your coin's Starknet contract address. If your wallet owns the contract it goes live immediately." />
+        <ClaimCollectionPanel kind="coin" />
       </ClaimGate>
     </ClaimRouteShell>
   );

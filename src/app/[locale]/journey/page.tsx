@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("Your journey");
-const description = msg("Every level, every badge, every way to earn XP on Medialane — the whole system, explained.");
+const description = msg("How levels and badges work on Medialane.");
 
 export const generateMetadata = pageMetadata({
   path: "/journey",
