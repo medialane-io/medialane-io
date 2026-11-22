@@ -130,14 +130,6 @@ const ASIDES = {
     trustLead: msg("Permanent."),
     trust: msg("Holders keep their tickets."),
   },
-  drop: {
-    included: [
-      { icon: Share2, title: msg("A drop page to share"), desc: msg("Collectors mint from the page.") },
-      { icon: Coins, title: msg("Price and supply"), desc: msg("Set by the creator.") },
-      { icon: Scale, title: msg("Licensing you control"), desc: msg("Set how collectors use the work.") },
-    ],
-    steps: [msg("Add artwork and details"), msg("Set price and timing"), msg("Launch and share")],
-  },
   mintEdition: {
     included: [
       { icon: Sparkles, title: msg("A new piece"), desc: msg("A new artwork in the collection.") },
