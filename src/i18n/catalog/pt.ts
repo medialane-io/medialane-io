@@ -425,7 +425,6 @@ const pt: Catalog = {
   "Setting up": "Configurando",
   "Setting up account…": "Configurando a conta…",
   "Setting up the wallet…": "Configurando a carteira…",
-  "Setup can pick up where it left off. Try again or contact support.": "A configuração continua de onde parou. Tente de novo ou fale com o suporte.",
   "Setup complete": "Configuração concluída",
   "Share the claim link with attendees": "Compartilhe o link de resgate com os participantes",
   "Share your collection in a single, clean link.": "Compartilhe sua coleção em um único link limpo.",

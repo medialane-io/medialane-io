@@ -411,7 +411,7 @@ describe("when the passkey step fails", () => {
       throw unsupported;
     });
     await enterEmail("no-prf@example.com");
-    await waitFor(() => expect(screen.getByText(/Setup can pick up where it left off/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/Update your browser, or open Medialane on another device/)).toBeTruthy());
     expect(api.account.registerEmailAccount).toHaveBeenCalledTimes(1);
     expect(done).toEqual([]);
     await click(screen.getByRole("button", { name: "Try again" }));
