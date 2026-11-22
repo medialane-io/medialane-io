@@ -18,17 +18,17 @@ const EARN_GROUPS = [
   {
     icon: FileCheck,
     title: msg("Get started"),
-    desc: msg("Sign up with your email. You're included from that point on, and it's the only requirement."),
+    desc: msg("Sign up with email to join."),
   },
   {
     icon: Coins,
     title: msg("Create"),
-    desc: msg("Mint, publish, launch collections or drops. Each action adds to your XP."),
+    desc: msg("Every creation adds XP."),
   },
   {
     icon: Star,
     title: msg("Trade and engage"),
-    desc: msg("Buy, sell, make offers, collaborate. This adds to the same XP total too."),
+    desc: msg("Every trade adds XP."),
   },
 ];
 
@@ -49,7 +49,7 @@ export function AirdropContent() {
               {t.rich("Creator's {fund}", { fund: <span className="text-brand-orange">{t("Fund")}</span> })}
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-md">
-              {t("A share of what Medialane earns is set aside for the people building here. Sign up and you're already in.")}
+              {t("Part of Medialane revenue goes to its creators.")}
             </p>
 
             <GenesisMint />
@@ -65,7 +65,7 @@ export function AirdropContent() {
       <section className="py-14 space-y-8">
         <div className="max-w-2xl">
           <h2 className="text-3xl sm:text-4xl font-black">{t("How you earn")}</h2>
-          <p className="text-base text-muted-foreground mt-2 leading-relaxed">{t.rich("Every real interaction with Medialane earns XP, and your total XP relative to everyone else's decides your share of each distribution. Signing up is enough to be included; everything below adds to the same running total. See your exact score on the {link} page.", { link: <Link href="/rewards" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
+          <p className="text-base text-muted-foreground mt-2 leading-relaxed">{t.rich("Every interaction earns XP tracked on {link}.", { link: <Link href="/rewards" className="text-foreground underline underline-offset-2 hover:text-brand-orange transition-colors">
               {t("Rewards")}
             </Link> })}</p>
         </div>
@@ -86,7 +86,7 @@ export function AirdropContent() {
         <div className="max-w-2xl space-y-3">
           <h2 className="text-3xl sm:text-4xl font-black">{t("The Creator's Fund")}</h2>
           <p className="text-base text-muted-foreground leading-relaxed">
-            {t("A share of what Medialane earns is set aside in one public wallet. Each time it reaches its threshold, it's airdropped to everyone taking part, split by XP. This runs through July 2027. Read the full mechanic and watch the live wallet at")}{" "}
+            {t("Part of Medialane revenue is airdropped by XP until July 2027. Details at")}{" "}
             <a
               href="https://medialane.org/creators-fund"
               target="_blank"
@@ -112,7 +112,7 @@ export function AirdropContent() {
               <div className="space-y-2.5">
                 {[
                   msg("Anyone who creates a free Medialane account."),
-                  msg("Approval-free, open to everyone."),
+                  msg("Open to everyone."),
                 ].map((text) => (
                   <div key={text} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
@@ -141,11 +141,8 @@ export function AirdropContent() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-muted-foreground" />
-              <p className="font-bold text-lg">{t("The legal stuff, in full")}</p>
+              <p className="font-bold text-lg">{t("Terms")}</p>
             </div>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              {t("We have to spell this out because we're a real platform. Here's the whole deal, no shortcuts:")}
-            </p>
             <div className="space-y-3 text-base text-muted-foreground leading-relaxed">
               <p>{t("Medialane is a content publishing and creator rewards platform. This campaign is not a financial product, investment scheme, lottery, or gambling service.")}</p>
               <p>{t("Participation does not guarantee any financial return. Fund distributions, if any occur, may take the form of platform credits, digital assets, or other community resources.")}</p>

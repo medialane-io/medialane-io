@@ -149,7 +149,7 @@ export async function runMarketplaceIntent(
 
 const endTimeAfter = (durationSeconds: number) => Math.floor(Date.now() / 1000) + durationSeconds;
 
-const LISTING_PROBLEM = "We had a problem listing your asset. If this error persists please contact our support.";
+const LISTING_PROBLEM = "The listing did not complete.";
 
 export async function createListing(ctx: MarketplaceContext, input: CreateListingInput, opts?: ActionOptions): Promise<MarketplaceResult> {
   try {

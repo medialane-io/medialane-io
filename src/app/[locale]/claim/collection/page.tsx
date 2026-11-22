@@ -7,7 +7,7 @@ import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel"
 import { PageAside } from "@/components/claim/page-aside";
 
 const title = msg("Claim a collection");
-const description = msg("Already deployed an ERC-721 collection on Starknet? Claim it to link it to your Medialane profile and give it a branded collection page.");
+const description = msg("Link a Starknet collection to your profile.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/collection",
@@ -27,7 +27,7 @@ export default function ClaimCollectionPage() {
     <ClaimRouteShell
       icon={<FolderInput className="h-4 w-4 text-white" />}
       title={msg("Claim a collection")}
-      subtitle={msg("Import an existing Starknet ERC-721 collection into your Medialane profile.")}
+      subtitle={msg("Link a Starknet collection to your profile.")}
       headerAccessory={urlPill}
       aside={<PageAside kind="claimCollection" />}
     >

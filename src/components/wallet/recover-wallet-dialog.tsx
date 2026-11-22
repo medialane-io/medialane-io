@@ -23,7 +23,7 @@ const STEP_LABEL: Record<Step, string> = {
 };
 
 const WARNING =
-  "This replaces the active wallet on this account. Assets in the current wallet can be moved first.";
+  "Replaces the active wallet.";
 
 interface RecoverWalletDialogProps {
   open: boolean;
@@ -60,7 +60,7 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
       const sealed = await sealImportedOwnerKey(recovery);
       const owned = await isOwnerOf(sealed.address, sealed.ownerPubKey).catch(() => false);
       if (!owned) {
-        setError("That key does not open this wallet. Check the whole recovery key was copied.");
+        setError(t("Paste the full recovery key for this account."));
         return;
       }
       setStep("securing");
@@ -72,7 +72,7 @@ export function RecoverWalletDialog({ open, onOpenChange }: RecoverWalletDialogP
     } catch (err) {
       setError(
         err instanceof InvalidRecoveryKeyError
-          ? "That does not look like a recovery key. Check all of it was copied."
+          ? t("Paste the full medialane-recovery key.")
           : describeError(err).message,
       );
     } finally {

@@ -16,7 +16,7 @@ const STEP_LABEL: Record<DeploymentStep, string> = {
 };
 
 const WARNING =
-  "This replaces the active wallet on this account. Assets in the current wallet can be moved first.";
+  "Replaces the active wallet.";
 
 interface ReplaceWalletDialogProps {
   open: boolean;

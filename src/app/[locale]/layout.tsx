@@ -21,7 +21,7 @@ const metadata: Metadata = {
     template: "%s | Medialane",
   },
   description:
-    msg("Launch, collect, and monetize your creative works with a passkey."),
+    msg("Launch and collect creative works."),
   keywords: ["NFT", "IP", "Launchpad", "Starknet", "Creator", "Marketplace"],
   authors: [{ name: "Medialane" }],
   icons: {

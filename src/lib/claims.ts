@@ -10,7 +10,7 @@ export const AIRDROP_CLAIM: ServiceDefinition = {
   blurb: msg("Join the Creator's Airdrop and claim a Genesis NFT."),
   title: msg("Claim airdrop"),
   subtitle: msg("Join the Creator's Airdrop"),
-  description: msg("Join the Creator's Airdrop, earn XP while creating, and claim a Genesis NFT."),
+  description: msg("Join the Creator's Airdrop."),
   features: [msg("Free to join"), msg("Earn XP while creating"), msg("Claim a Genesis NFT")],
   icon: Gift,
   status: "live",

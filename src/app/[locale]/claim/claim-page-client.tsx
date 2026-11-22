@@ -16,7 +16,7 @@ export function ClaimPageClient() {
         <FadeIn>
           <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">{t("Claims")}</h1>
           <p className="mt-2 text-muted-foreground">
-            {t("Reserve your username, bring in a collection or a coin, or join the airdrop.")}
+            {t("Claim what's yours on Medialane.")}
           </p>
         </FadeIn>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">

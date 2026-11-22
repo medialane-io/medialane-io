@@ -196,7 +196,7 @@ describe("marketplace actions", () => {
     const failure = await createListing(ctx, { ...base, tokenStandard: "ERC721" }, FAST).catch((e: unknown) => e);
     expect(failure).toBeInstanceOf(SponsoredCallRejectedError);
     expect((failure as Error).message).toBe(
-      "We had a problem listing your asset. If this error persists please contact our support.",
+      "The listing did not complete.",
     );
     expect((failure as { code?: string; stage?: string }).code).toBe("calls_mismatch");
     expect((failure as { stage?: string }).stage).toBe("build");

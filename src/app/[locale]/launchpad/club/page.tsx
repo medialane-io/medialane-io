@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("IP Club");
-const description = msg("Membership clubs — create tiers, mint membership cards, trade like any collection.");
+const description = msg("Membership clubs with tradable cards.");
 
 export const generateMetadata = pageMetadata({
   path: "/launchpad/club",

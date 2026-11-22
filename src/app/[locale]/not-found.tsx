@@ -12,9 +12,6 @@ export default function NotFound() {
       <div className="space-y-2">
         <p className="text-8xl font-black text-muted-foreground/20 select-none leading-none">404</p>
         <h1 className="text-2xl font-bold">{t("Page not found")}</h1>
-        <p className="text-muted-foreground text-sm max-w-xs">
-          {t("This page doesn't exist, or the asset may have been removed.")}
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3">

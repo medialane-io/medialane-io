@@ -11,14 +11,13 @@ import { Input } from "@medialane/ui/input";
 import { Label } from "@medialane/ui/label";
 import { Textarea } from "@medialane/ui/textarea";
 import { Loader2 } from "lucide-react";
-import { useT } from "@medialane/ui/i18n";
+import { msg, useT } from "@medialane/ui/i18n";
 
 type Step = "input" | "verifying" | "success" | "manual" | "pending";
 
 const isValidAddress = (a: string) => /^0x[0-9a-fA-F]{40,64}$/.test(a.trim());
 
-const DEFAULT_HELPER_TEXT =
-  "Paste the Starknet contract address you own, an NFT collection or a coin.";
+const DEFAULT_HELPER_TEXT = msg("Paste a collection or coin contract address.");
 
 export function ClaimCollectionPanel({
   helperText,
@@ -40,7 +39,7 @@ export function ClaimCollectionPanel({
 
   async function handleAutoClaim() {
     if (!contractAddress.trim() || !walletAddress) {
-      setPanelError("Secure your account first, then try again.");
+      setPanelError(t("Secure the account first."));
       return;
     }
     setPanelError(null);
@@ -68,7 +67,7 @@ export function ClaimCollectionPanel({
   }
 
   async function handleManualRequest() {
-    if (!email.trim()) { setPanelError("Add your email so we can reply."); return; }
+    if (!email.trim()) { setPanelError(t("Add an email for the reply.")); return; }
     setPanelError(null);
     try {
       await getMedialaneClient().api.collections.requestClaim({
@@ -80,7 +79,7 @@ export function ClaimCollectionPanel({
       setStep("pending");
     } catch (err) {
       console.error("collection claim request failed", err);
-      setPanelError("We couldn't send your request. Please try again.");
+      setPanelError(t("Try sending again."));
     }
   }
 
@@ -120,7 +119,7 @@ export function ClaimCollectionPanel({
       {step === "pending" && (
         <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-2">
           <p className="font-semibold text-foreground">{t("Claim under review")}</p>
-          <p className="text-sm text-muted-foreground">{t("Our team will verify ownership. You'll be notified at {email} once processed.", { email })}</p>
+          <p className="text-sm text-muted-foreground">{t("Updates go to {email}.", { email })}</p>
         </div>
       )}
 
@@ -138,10 +137,10 @@ export function ClaimCollectionPanel({
             />
             {contractAddress.trim() !== "" && !isValidAddress(contractAddress) ? (
               <p className="text-xs text-destructive">
-                {t("That doesn't look like a Starknet address. It should start with “0x”.")}
+                {t("Starknet addresses start with 0x.")}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground">{helperText ?? DEFAULT_HELPER_TEXT}</p>
+              <p className="text-xs text-muted-foreground">{helperText ?? t(DEFAULT_HELPER_TEXT)}</p>
             )}
           </div>
           {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}
@@ -163,7 +162,7 @@ export function ClaimCollectionPanel({
           <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-1">
             <p className="text-sm font-medium text-foreground">{t("Manual verification required")}</p>
             <p className="text-xs text-muted-foreground">
-              {t("{verifyError}. Submit a request for our team to review.", { verifyError })}</p>
+              {verifyError}</p>
           </div>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -183,7 +182,7 @@ export function ClaimCollectionPanel({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                placeholder={t("e.g. I deployed this contract on Starknet mainnet…")}
+                placeholder={t("Details for the review")}
               />
             </div>
             {panelError && <p role="alert" className="text-sm text-destructive">{panelError}</p>}

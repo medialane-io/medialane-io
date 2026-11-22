@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("Launchpad");
-const description = msg("Creator hub — launch drops, mint assets, and deploy collections on Medialane.");
+const description = msg("Launch drops and collections on Medialane.");
 
 export const generateMetadata = pageMetadata({
   path: "/launchpad",

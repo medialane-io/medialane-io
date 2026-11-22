@@ -108,7 +108,7 @@ export function NewBrowserWallet({
           })}
         />
         <div className="space-y-3 text-center text-sm text-muted-foreground">
-          <p>{t("Medialane accounts are smart contracts owned by their holders. No one else can access them, not even Medialane.")}</p>
+          <p>{t("Medialane accounts are smart contracts only their holders can access.")}</p>
           <p>
             {t.plural("A {count}-day wait keeps every recovery secure.", "A {count}-day wait keeps every recovery secure.", waitDays)}{" "}
             {t("An email arrives when the account is ready.")}
@@ -149,7 +149,7 @@ export function NewBrowserWallet({
           <div className="space-y-1">
             <p className="text-sm font-medium">{t("Start a new wallet?")}</p>
             <p className="text-sm text-muted-foreground">
-              {t("This account gets a fresh wallet. Everything in the current wallet stays there.")}
+              {t("Items in the current wallet stay there.")}
             </p>
           </div>
           <Button variant="soft" className={OPTION_CLASS} onClick={onStartNew}>

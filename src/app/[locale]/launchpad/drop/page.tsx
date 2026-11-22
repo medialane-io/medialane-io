@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("Collection drop");
-const description = msg("Mint limited edition drops. Set your supply cap, open a mint window, and let your community collect.");
+const description = msg("Launch a limited edition drop.");
 
 export const generateMetadata = pageMetadata({
   path: "/launchpad/drop",

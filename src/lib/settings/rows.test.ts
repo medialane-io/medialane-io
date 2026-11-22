@@ -90,11 +90,11 @@ describe("writing a deadline as a date", () => {
 
 describe("the line under 'Verify your email' in the wallet panel", () => {
   test("names the date when there is one", () => {
-    expect(emailBannerText("2026-10-10T12:00:00.000Z")).toBe("Confirm by 10 October to keep your account");
+    expect(emailBannerText("2026-10-10T12:00:00.000Z")).toBe("Confirm by 10 October");
   });
 
   test("falls back to the general reason when there is no date", () => {
-    expect(emailBannerText(null)).toBe("Validate to access all the platform features");
-    expect(emailBannerText(undefined)).toBe("Validate to access all the platform features");
+    expect(emailBannerText(null)).toBe("Confirm the email");
+    expect(emailBannerText(undefined)).toBe("Confirm the email");
   });
 });

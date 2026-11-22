@@ -177,7 +177,7 @@ describe("someone signed in whose account has no wallet yet", () => {
 describe("an address that is not an email", () => {
   test("gets a clear message and nothing is sent", async () => {
     await enterEmail("bfjsdbkfjs");
-    await waitFor(() => expect(screen.getByText("Enter a full email address, like name@example.com.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Enter a full email address.")).toBeTruthy());
     expect(api.account.emailExists).not.toHaveBeenCalled();
   });
 });
@@ -305,7 +305,7 @@ describe("an address that already has an account", () => {
     await enterCode();
     await click(await waitFor(() => screen.getByRole("button", { name: SUPPORT_OPTION })));
     await click(await waitFor(() => screen.getByRole("button", { name: "Send" })));
-    await waitFor(() => screen.getByText(/Message sent/));
+    await waitFor(() => screen.getByText(/Support replies to/));
     expect(api.account.contactSupport).toHaveBeenCalledWith({ message: undefined });
   });
 

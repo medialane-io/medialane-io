@@ -73,7 +73,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
             </IconTile>
             <div>
               <p className="text-sm font-semibold text-foreground">{t("Active listing detected")}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{t.rich("Accepting this offer will transfer the NFT, leaving {value} unfulfillable. Cancel {value2} first to keep the marketplace clean.", { value: activeListings.length === 1 ? "your listing" : `your ${activeListings.length} listings`, value2: activeListings.length === 1 ? "it" : "them" })}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("Cancel active listings before accepting.")}</p>
             </div>
           </div>
 
@@ -129,7 +129,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
           success={successMessages.accepted({ name, price: priceLabel }, t)}
           successChildren={<RewardEarned actionType="offer_accepted_seller" />}
           errorTitle={t("Offer acceptance failed")}
-          errorDescription={t("The transaction could not be completed. Your asset is still listed.")}
+          errorDescription={t("The asset is still listed.")}
           onRetry={retryable ? confirmAccept : undefined}
           onDone={dismiss}
         >
@@ -145,7 +145,7 @@ export function AcceptOfferDialog({ hook, tokenName, tokenImage, onCancelListing
               buyerHasFunds === false ? (
                 <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
-                  <AlertDescription className="text-xs">{t("Buyer may have insufficient {currency}. The offer stays active if the payment fails.", { currency: selectedOrder?.price.currency ?? "" })}</AlertDescription>
+                  <AlertDescription className="text-xs">{t("The offer stays active if the {currency} payment fails.", { currency: selectedOrder?.price.currency ?? "" })}</AlertDescription>
                 </Alert>
               ) : null
             }

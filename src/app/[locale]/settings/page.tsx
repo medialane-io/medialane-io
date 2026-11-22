@@ -5,7 +5,7 @@ import { legacySettingsPath } from "@/lib/settings/rows";
 import SettingsHomePage from "@/components/settings/pages/home-page";
 
 const title = msg("Account settings");
-const description = msg("Manage your public creator identity, username, and account.");
+const description = msg("Profile and account settings.");
 
 export const generateMetadata = pageMetadata({
   path: "/settings",

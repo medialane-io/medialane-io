@@ -124,7 +124,7 @@ export function LaunchMint() {
                     </span>
                   </h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {t("One quick step before minting: secure your self-custody account with a passkey.")}
+                    {t("Add a passkey to start minting.")}
                   </p>
                 </div>
 
@@ -167,7 +167,7 @@ export function LaunchMint() {
                         disabled={!MINT_CONTRACT}
                       >
                         <Sparkles className="h-4 w-4" />
-                        {MINT_CONTRACT ? t("Claim Genesis NFT — Free") : t("Mint opening soon")}
+                        {MINT_CONTRACT ? t("Claim Genesis NFT") : t("Mint opening soon")}
                         <ArrowRight className="h-4 w-4 ml-auto" />
                       </Button>
                       <p className="text-xs text-center text-muted-foreground">
@@ -275,7 +275,7 @@ export function LaunchMint() {
                       className="text-xs text-muted-foreground underline underline-offset-2"
                       onClick={mintAnother}
                     >
-                      {t("Didn't receive your NFT? Try again")}
+                      {t("Mint again")}
                     </button>
                   </div>
                 )}

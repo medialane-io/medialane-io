@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("Discover");
-const description = msg("Explore trending digital assets, collections, and creators on Medialane — Creator Launchpad + NFT Marketplace.");
+const description = msg("Explore trending assets and creators on Medialane.");
 
 export const generateMetadata = pageMetadata({
   path: "/discover",

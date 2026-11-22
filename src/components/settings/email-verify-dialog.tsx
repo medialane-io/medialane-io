@@ -46,7 +46,7 @@ export function EmailVerifyDialog({ open, onOpenChange, email, onVerified, skipI
           <DialogTitle>{verified ? t("You're all set") : t("Verify your email")}</DialogTitle>
           <DialogDescription>
             {verified
-              ? t("Your email is confirmed. Your account is fully unrestricted.")
+              ? t("Email confirmed.")
               : `Enter the 6-digit code we sent to ${email}.`}
           </DialogDescription>
         </DialogHeader>

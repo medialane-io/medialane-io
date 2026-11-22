@@ -31,7 +31,7 @@ export default function AppearanceSettingsPage() {
     <SettingsGate>
       <SettingsPage
         title={t("Avatar & theme")}
-        subtitle={t("Pick one of your NFTs. It becomes your avatar and a subtle background theme across Medialane.")}
+        subtitle={t("Pick an NFT for the avatar and theme.")}
         icon={<ImageIcon className="h-4 w-4 text-white" />}
         aside={
           <ProfileLivePreview form={form} approvedUsername={username} walletAddress={address} fallbackImage={assets[0]?.image} />

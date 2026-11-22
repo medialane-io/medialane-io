@@ -194,7 +194,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
 
   const continueWithEmail = async () => {
     if (!isEmailAddress(email)) {
-      dispatch({ type: "email-step-failed", message: t("Enter a full email address, like name@example.com.") });
+      dispatch({ type: "email-step-failed", message: t("Enter a full email address.") });
       return;
     }
     dispatch({ type: "email-submitted" });
@@ -269,7 +269,7 @@ export function OnboardingFlow({ start = "email", onDone, autoStartWallet = true
         )}
         {error || step === "checking-account" ? null : (
           <p className="text-xs text-muted-foreground">
-            {t("A passkey, Face ID or Touch ID secures the account.")}
+            {t("A passkey secures the account.")}
           </p>
         )}
       </div>

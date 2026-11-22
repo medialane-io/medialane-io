@@ -104,7 +104,7 @@ export function ListingDialog({
       open={open}
       onOpenChange={handleClose}
       title={`Sell ${name}`}
-      description={t("Set pricing, quantity, currency, and duration to create an onchain marketplace listing.")}
+      description={t("Set the price and duration.")}
     >
       <TransactionDialogStates
         phase={phase}
@@ -115,7 +115,7 @@ export function ListingDialog({
         successActions={[{ label: t("Done"), onClick: () => { onOpenChange(false); onSuccess?.(); } }]}
         successChildren={<RewardEarned actionType="list_asset" />}
         errorTitle={t("Listing failed")}
-        errorDescription={t("The transaction was submitted, but the listing could not be completed.")}
+        errorDescription={t("The listing did not complete.")}
         onRetry={retryable ? reset : undefined}
         onDone={() => onOpenChange(false)}
       >
@@ -161,7 +161,7 @@ export function ListingDialog({
                         <><Tag className="h-4 w-4" /> {t("Sell")}</>
                       )}
                     </ActionButton>
-                    <DialogNote>{t("Listings are fully onchain and permissionless. Assets stay in the wallet until it settles.")}</DialogNote>
+                    <DialogNote>{t("Assets stay in the wallet until the sale.")}</DialogNote>
                   </div>
 
                 </form>

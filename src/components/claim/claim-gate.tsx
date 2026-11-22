@@ -18,7 +18,7 @@ export function ClaimGate({ children }: { children: ReactNode }) {
     <div className="space-y-3 rounded-xl border border-dashed border-border p-6 text-center">
       <Wallet className="mx-auto h-8 w-8 text-muted-foreground" />
       <p className="text-sm font-medium text-foreground">{t("Secure your account to make a claim")}</p>
-      <p className="text-sm text-muted-foreground">{t("It only takes a moment, and you come right back here.")}</p>
+      <p className="text-sm text-muted-foreground">{t("Takes a moment.")}</p>
       <Button asChild>
         <Link href={connectHref(pathname)}>{t("Get started")}</Link>
       </Button>

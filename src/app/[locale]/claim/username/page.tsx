@@ -7,7 +7,7 @@ import { UsernameClaimSection } from "@/components/settings/username-claim-secti
 import { PageAside } from "@/components/claim/page-aside";
 
 const title = msg("Claim your username");
-const description = msg("Reserve your unique creator username and get a shareable creator page at medialane.io/creator/yourname.");
+const description = msg("Claim a creator username.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/username",

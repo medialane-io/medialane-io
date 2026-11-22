@@ -27,7 +27,7 @@ export default function WalletSettingsPage() {
           <AccountSection
             icon={Wallet}
             title={t("Media Wallet")}
-            description={t("Account secured with immutable smart contracts and self-custodial wallet.")}
+            description={t("Secured by a self-custodial smart account.")}
           >
             {address ? (
               <>
@@ -75,7 +75,7 @@ export default function WalletSettingsPage() {
             icon={RefreshCw}
             destructive
             title={t("Generate new wallet")}
-            description={t("This replaces the active wallet on this account. Assets in the current wallet can be moved first.")}
+            description={t("Replaces the active wallet.")}
           >
             <Button onClick={() => setReplaceOpen(true)} variant="destructive" size="sm">
               {t("Generate a new wallet")}

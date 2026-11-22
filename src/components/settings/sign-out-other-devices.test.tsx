@@ -43,5 +43,5 @@ test("shows the error and lets you try again", async () => {
 
 test("explains that a device with a key can still sign in", () => {
   render(<SignOutOtherDevices />);
-  expect(screen.getByText("Devices listed above can still sign in with their key. Remove a device to stop that.")).toBeTruthy();
+  expect(screen.getByText("Remove a device to end its access.")).toBeTruthy();
 });
