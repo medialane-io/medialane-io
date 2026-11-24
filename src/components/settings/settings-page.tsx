@@ -1,6 +1,6 @@
 "use client";
 
-import { ServiceFormShell, cn, ActionButton } from "@medialane/ui";
+import { ServiceFormShell, cn, ActionButton, PageState } from "@medialane/ui";
 import Link from "@medialane/ui/link";
 import type { ElementType, ReactNode } from "react";
 import { ArrowLeft, ChevronRight, Settings as SettingsIcon, Wallet } from "lucide-react";
@@ -50,14 +50,11 @@ export function SettingsGate({ children }: { children: ReactNode }) {
   const { hasWallet } = useWalletNativeSession();
   if (hasWallet) return <>{children}</>;
   return (
-    <div className="space-y-4 px-4 py-24 text-center">
-      <Wallet className="mx-auto h-12 w-12 text-muted-foreground" />
-      <h1 className="text-2xl font-bold">{t("Secure your account")}</h1>
-      <p className="mx-auto max-w-sm text-muted-foreground">{t("Secure your account to manage your creator settings.")}</p>
+    <PageState icon={Wallet} title={t("Secure your account")} description={t("Secure your account to manage your creator settings.")}>
       <ActionButton solid asChild>
         <Link href="/connect?redirect_url=/settings">{t("Get started")}</Link>
       </ActionButton>
-    </div>
+    </PageState>
   );
 }
 
