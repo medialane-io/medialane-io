@@ -7,6 +7,7 @@ import {
   FiltersDialog,
   MarketplaceSearch,
   PageContainer,
+  PageHeader,
   StatPillRow,
   usePlatformStats,
   useMarketplaceFilters,
@@ -37,12 +38,10 @@ export default function MarketplacePageClient() {
   const market = useMarketActions();
 
   return (
-    <PageContainer className="box-border max-w-full pt-14 pb-8 space-y-8">
-
-      <div className="space-y-2 pt-8">
-        <h1 className="text-3xl font-bold">{t("Onchain markets")}</h1>
+    <PageContainer className="space-y-8">
+      <PageHeader title={t("Onchain markets")}>
         <PlatformStatsBar />
-      </div>
+      </PageHeader>
 
       <ActivityTicker limit={12} />
 

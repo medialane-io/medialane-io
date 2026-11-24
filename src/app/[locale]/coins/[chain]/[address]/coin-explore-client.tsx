@@ -5,7 +5,7 @@ import { useRouter } from "@medialane/ui/router";
 import Link from "@medialane/ui/link";
 import Image from "next/image";
 import { ArrowDown, ArrowUp, ArrowUpRight, ExternalLink } from "lucide-react";
-import { coinKind, coinKindLabel, formatCoinPrice, CoinGuarantees, useCoinPrice, useMediaWallet, cn, ActionButton } from "@medialane/ui";
+import { coinKind, coinKindLabel, formatCoinPrice, CoinGuarantees, PageContainer, useCoinPrice, useMediaWallet, cn, ActionButton } from "@medialane/ui";
 import { MAX_TEAM_ALLOCATION_PERCENT } from "@medialane/sdk/starknet";
 import { useCoinGuarantees } from "@medialane/ui/utils/use-coin-guarantees";
 import { useCoinSupply } from "@medialane/ui/utils/use-coin-supply";
@@ -89,7 +89,7 @@ export function CoinExploreClient({ address }: { address: string }) {
         )}
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-20 pb-12 space-y-6">
+      <PageContainer variant="narrow" className="max-w-3xl space-y-8">
 
         <div className="flex items-center gap-4">
           {logo ? (
@@ -197,7 +197,7 @@ export function CoinExploreClient({ address }: { address: string }) {
             <Link href={profileHref({ address: coin.creator })} className="hover:text-foreground">{t("by")} {coin.creator.slice(0, 6)}…{coin.creator.slice(-4)}</Link>
           )}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

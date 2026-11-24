@@ -13,9 +13,5 @@ export const generateMetadata = pageMetadata({
 });
 
 export default function CoinsPage() {
-  return (
-    <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8 pt-20 pb-8">
-      <CoinsMount />
-    </div>
-  );
+  return <CoinsMount />;
 }
