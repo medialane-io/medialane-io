@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { fetchDropMeta, ipfsToHttpServer } from "@/lib/api-server";
 import { alternates, buildBreadcrumbJsonLd, buildProductJsonLd, buildSocialMetadata } from "@/lib/seo";
+import { DropDetailPage } from "@medialane/ui";
 import { JsonLd } from "@medialane/ui/json-ld";
-import DropDetailPage from "./drop-page-client";
 
 export const revalidate = 60;
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { LAUNCHPAD_ROUTE_OVERRIDES, LAUNCHPAD_SERVICE_DEFINITIONS, LaunchpadServiceCard } from "@medialane/ui";
-import { FadeIn } from "@medialane/ui/motion-primitives";
+import { LAUNCHPAD_ROUTE_OVERRIDES, LAUNCHPAD_SERVICE_DEFINITIONS, LaunchpadServiceCard, PageContainer, PageHeader } from "@medialane/ui";
 import { claimDefinitions, claimOverrides } from "@/lib/claims";
 import { useT } from "@medialane/ui/i18n";
 
@@ -11,20 +10,13 @@ const OVERRIDES = claimOverrides(LAUNCHPAD_ROUTE_OVERRIDES);
 export function ClaimPageClient() {
   const t = useT();
   return (
-    <div className="relative pb-20">
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 space-y-6">
-        <FadeIn>
-          <h1 className="text-3xl sm:text-4xl font-semibold leading-tight">{t("Claims")}</h1>
-          <p className="mt-2 text-muted-foreground">
-            {t("Claim what's yours on Medialane.")}
-          </p>
-        </FadeIn>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
-          {CARDS.map((def, index) => (
-            <LaunchpadServiceCard key={def.key} def={def} override={OVERRIDES[def.key]} index={index} />
-          ))}
-        </div>
-      </section>
-    </div>
+    <PageContainer className="space-y-8">
+      <PageHeader title={t("Claims")} subtitle={t("Claim what's yours on Medialane.")} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+        {CARDS.map((def, index) => (
+          <LaunchpadServiceCard key={def.key} def={def} override={OVERRIDES[def.key]} index={index} />
+        ))}
+      </div>
+    </PageContainer>
   );
 }

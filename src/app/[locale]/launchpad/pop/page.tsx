@@ -1,4 +1,4 @@
-import { PopContent } from "./pop-content";
+import { PopPage } from "@medialane/ui";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
@@ -11,6 +11,6 @@ export const generateMetadata = pageMetadata({
   description,
 });
 
-export default function PopPage() {
-  return <PopContent />;
+export default function PopRoute() {
+  return <PopPage />;
 }

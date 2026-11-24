@@ -12,9 +12,5 @@ export const generateMetadata = pageMetadata({
 });
 
 export default function JourneyPage() {
-  return (
-    <div className="max-w-5xl mx-auto px-5 sm:px-8">
-      <JourneyContent startHint={msg("Get started in seconds.")} />
-    </div>
-  );
+  return <JourneyContent startHint={msg("Get started in seconds.")} />;
 }
