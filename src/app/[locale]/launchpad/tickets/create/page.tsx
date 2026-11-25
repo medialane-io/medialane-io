@@ -1,8 +1,8 @@
 "use client";
 
 import { CollectionCreateForm, TICKETS_PRESET } from "@medialane/ui";
-import { PageAside } from "@/components/claim/page-aside";
+import { CreateAside } from "@medialane/ui/create-aside";
 
 export default function CreateTicketCollectionPage() {
-  return <CollectionCreateForm preset={TICKETS_PRESET} aside={<PageAside kind="tickets" />} />;
+  return <CollectionCreateForm preset={TICKETS_PRESET} aside={<CreateAside kind="tickets" />} />;
 }
