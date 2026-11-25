@@ -1,8 +1,8 @@
 "use client";
 
 import { CoinCreate } from "@medialane/ui";
-import { PageAside } from "@/components/claim/page-aside";
+import { CreateAside } from "@medialane/ui/create-aside";
 
 export default function CoinCreatePage() {
-  return <CoinCreate aside={<PageAside kind="coin" />} tradeHref={(address) => `https://starknet.medialane.io/collections/${address}`} />;
+  return <CoinCreate aside={<CreateAside kind="coin" />} tradeHref={(address) => `https://starknet.medialane.io/collections/${address}`} />;
 }

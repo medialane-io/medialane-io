@@ -3,7 +3,7 @@ import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
 const title = msg("IP Sponsorship");
-const description = msg("Sponsorship offers and licenses anchored to Medialane assets.");
+const description = msg("Sponsorship offers and licenses for works on Medialane.");
 
 export const generateMetadata = pageMetadata({
   path: "/launchpad/sponsorship",
