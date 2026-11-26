@@ -172,3 +172,9 @@ test("the recovery routes: reading and starting, and finishing, are allowed and 
   expect(isPathAllowed("POST", "users/me/wallet/recovery/other")).toBe(false);
   expect(isPathAllowed("DELETE", "users/me/wallet/recovery")).toBe(false);
 });
+
+test("only a wallet's invoke can be co-signed through the proxy", () => {
+  expect(isPathAllowed("POST", "paymaster/invoke/cosign")).toBe(true);
+  expect(isPathAllowed("POST", "paymaster/deploy/cosign")).toBe(false);
+  expect(isPathAllowed("GET", "paymaster/invoke/cosign")).toBe(false);
+});

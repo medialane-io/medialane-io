@@ -86,6 +86,7 @@ export const ALLOW: Record<string, RegExp[]> = {
     /^rpc$/,
     /^swap\/quote$/,
     /^paymaster\/(invoke|deploy)\/(build|execute)$/,
+    /^paymaster\/invoke\/cosign$/,
   ],
   PATCH: [
     /^intents\/[^/]+\/(confirm|signature)$/,
