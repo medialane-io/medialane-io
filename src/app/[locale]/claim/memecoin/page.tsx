@@ -2,7 +2,7 @@ import { Coins } from "lucide-react";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { ClaimCollectionPanel } from "@/components/claim/claim-collection-panel";
-import { PageAside } from "@/components/claim/page-aside";
+import { PageAside } from "@medialane/ui/page-aside";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 

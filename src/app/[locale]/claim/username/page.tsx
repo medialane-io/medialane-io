@@ -4,7 +4,7 @@ import { msg } from "@medialane/ui/i18n";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { UsernameClaimSection } from "@/components/settings/username-claim-section";
-import { PageAside } from "@/components/claim/page-aside";
+import { PageAside } from "@medialane/ui/page-aside";
 
 const title = msg("Claim your username");
 const description = msg("Claim a creator username.");
