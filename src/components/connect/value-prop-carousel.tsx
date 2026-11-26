@@ -9,7 +9,7 @@ import {
 import { msg, useT } from "@medialane/ui/i18n";
 
 const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
-  { label: msg("Own your work"), icon: Award },
+  { label: msg("Own your NFTs"), icon: Award },
   { label: msg("Create freely"), icon: Pencil },
   { label: msg("Get rewarded"), icon: Trophy },
   { label: msg("Sign in with a glance"), icon: ScanFace },
@@ -21,7 +21,7 @@ const VALUE_PROPS: { label: string; icon: LucideIcon }[] = [
   { label: msg("Censorship resistant"), icon: Radio },
   { label: msg("Sponsored transactions"), icon: Zap },
   { label: msg("Remix"), icon: Shuffle },
-  { label: msg("Limited Editions"), icon: Package },
+  { label: msg("Limited Edition NFTs"), icon: Package },
   { label: msg("Creator's Fund"), icon: Gem },
   { label: msg("Asset provenance"), icon: Fingerprint },
   { label: msg("Creator Launchpad"), icon: Rocket },

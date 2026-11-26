@@ -6,8 +6,8 @@ import { ClaimGate } from "@/components/claim/claim-gate";
 import { CollectionNameClaim } from "@medialane/ui";
 import { PageAside } from "@medialane/ui/page-aside";
 
-const title = msg("Claim a collection name");
-const description = msg("A short web address for the collection.");
+const title = msg("Collection Address");
+const description = msg("Give your collection a short, memorable link that's easy to share.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/collection-name",
@@ -19,8 +19,8 @@ export default function ClaimCollectionNamePage() {
   return (
     <ClaimRouteShell
       icon={<Link2 className="h-4 w-4 text-white" />}
-      title={msg("Claim a collection name")}
-      subtitle={msg("Pick a collection to name its URL.")}
+      title={msg("Collection Address")}
+      subtitle={msg("Give your collection a short, memorable link that's easy to share.")}
       aside={<PageAside kind="claimCollectionName" />}
     >
       <ClaimGate>

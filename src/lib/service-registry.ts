@@ -40,7 +40,7 @@ const SERVICE_REGISTRY: Record<string, ServiceConfig> = {
   },
   "drop-collection": {
     serviceId: "drop-collection",
-    name: "Collection Drop",
+    name: "NFT Drop",
     description: msg("Limited edition timed release"),
     icon: Package,
     badge: "DROP",

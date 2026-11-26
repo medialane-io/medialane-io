@@ -2,8 +2,8 @@ import { PopPage } from "@medialane/ui";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
-const title = msg("Proof of Participation");
-const description = msg("Proof of attendance for events.");
+const title = msg("POP Protocol");
+const description = msg("Issue soulbound certificates as lasting proof of participation and achievement.");
 
 export const generateMetadata = pageMetadata({
   path: "/launchpad/pop",

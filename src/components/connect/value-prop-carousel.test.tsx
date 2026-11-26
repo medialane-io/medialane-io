@@ -8,7 +8,7 @@ import { ValuePropCarousel } from "./value-prop-carousel";
 afterEach(() => cleanup());
 
 const LABELS = [
-  "Own your work",
+  "Own your NFTs",
   "Create freely",
   "Get rewarded",
   "Sign in with a glance",
@@ -20,7 +20,7 @@ const LABELS = [
   "Censorship resistant",
   "Sponsored transactions",
   "Remix",
-  "Limited Editions",
+  "Limited Edition NFTs",
   "Creator's Fund",
   "Asset provenance",
   "Creator Launchpad",
@@ -37,7 +37,7 @@ test("renders all 17 value props in the primary track", () => {
 
 test("duplicates the track for a seamless loop", () => {
   const { getAllByText } = render(<ValuePropCarousel />);
-  expect(getAllByText("Own your work")).toHaveLength(2);
+  expect(getAllByText("Own your NFTs")).toHaveLength(2);
 });
 
 test("marks the duplicate track aria-hidden so screen readers don't double-announce it", () => {
@@ -45,5 +45,5 @@ test("marks the duplicate track aria-hidden so screen readers don't double-annou
 
   const hidden = container.querySelector('div[aria-hidden="true"]');
   expect(hidden).toBeTruthy();
-  expect(within(hidden as HTMLElement).getByText("Own your work")).toBeTruthy();
+  expect(within(hidden as HTMLElement).getByText("Own your NFTs")).toBeTruthy();
 });
