@@ -1,5 +1,5 @@
 import { SingleEditionMint } from "@medialane/ui";
-import { CreateAside } from "@medialane/ui/create-aside";
+import { PageAside } from "@medialane/ui/page-aside";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
@@ -13,5 +13,5 @@ export const generateMetadata = pageMetadata({
 });
 
 export default function SingleEditionsPage() {
-  return <SingleEditionMint aside={<CreateAside kind="asset" />} />;
+  return <SingleEditionMint aside={<PageAside kind="asset" />} />;
 }

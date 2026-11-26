@@ -1,8 +1,8 @@
 "use client";
 
 import { CollectionCreateForm, SINGLE_PRESET } from "@medialane/ui";
-import { CreateAside } from "@medialane/ui/create-aside";
+import { PageAside } from "@medialane/ui/page-aside";
 
 export default function LaunchpadCreateCollectionPage() {
-  return <CollectionCreateForm preset={SINGLE_PRESET} aside={<CreateAside kind="collection" />} />;
+  return <CollectionCreateForm preset={SINGLE_PRESET} aside={<PageAside kind="collection" />} />;
 }

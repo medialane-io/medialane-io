@@ -35,10 +35,9 @@ describe("the cards on the claims page", () => {
     expect(overrides[AIRDROP_CLAIM.key]?.href).toBe("/airdrop");
   });
 
-  test("the airdrop card looks like the others: same group, a call to action and three points", () => {
+  test("the airdrop card looks like the others: same group, a call to action", () => {
     expect(AIRDROP_CLAIM.group).toBe("claims");
     expect(AIRDROP_CLAIM.cta).toBeTruthy();
-    expect(AIRDROP_CLAIM.features).toHaveLength(3);
   });
 });
 
@@ -57,7 +56,7 @@ describe("the claims the launchpad stops showing", () => {
     const second = /\b(you|your|yours|you're|you'll)\b/i;
     const withoutAddresses = (text: string) => text.replace(/medialane\.io\/\S+/g, "");
     for (const card of cards) {
-      const copy = [card.blurb, card.subtitle, card.description, card.example ?? "", ...card.features].map(withoutAddresses);
+      const copy = [card.blurb, card.subtitle, card.description, card.example ?? ""].map(withoutAddresses);
       for (const text of copy) expect(second.test(text), `${card.key}: ${text}`).toBe(false);
     }
   });

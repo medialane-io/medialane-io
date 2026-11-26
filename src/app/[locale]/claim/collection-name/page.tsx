@@ -4,7 +4,7 @@ import { msg } from "@medialane/ui/i18n";
 import { ClaimRouteShell } from "@medialane/ui";
 import { ClaimGate } from "@/components/claim/claim-gate";
 import { CollectionNameClaim } from "@medialane/ui";
-import { PageAside } from "@/components/claim/page-aside";
+import { PageAside } from "@medialane/ui/page-aside";
 
 const title = msg("Claim a collection name");
 const description = msg("A short web address for the collection.");
