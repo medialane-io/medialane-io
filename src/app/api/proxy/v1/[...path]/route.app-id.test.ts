@@ -49,7 +49,7 @@ test("the gateway ignores an x-account-session header sent by the browser", asyn
 });
 
 test("rpc, paymaster and swap quote calls go through the gateway with the session", async () => {
-  for (const path of [["rpc"], ["paymaster", "invoke", "build"], ["paymaster", "deploy", "execute"], ["swap", "quote"]]) {
+  for (const path of [["rpc"], ["paymaster", "invoke", "build"], ["paymaster", "invoke", "cosign"], ["paymaster", "deploy", "execute"], ["swap", "quote"]]) {
     const req = new NextRequest(`http://localhost/api/proxy/v1/${path.join("/")}`, { method: "POST", body: "{}" });
     req.cookies.set("ml_account_session", "s1");
     const res = await POST(req, params(...path));
