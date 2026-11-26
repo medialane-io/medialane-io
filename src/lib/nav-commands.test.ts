@@ -30,7 +30,7 @@ test("the intended destination ranks first while the query is still being typed"
     [["set", "sett", "setti", "settings"], "Account settings"],
     [["air", "aird", "airdrop"], "Airdrop"],
     [["portf", "portfo", "portfolio"], "Portfolio"],
-    [["club"], "Create IP Club"],
+    [["club"], "IP Club"],
     [["coins"], "Coins"],
   ];
   for (const [prefixes, expected] of journeys) {

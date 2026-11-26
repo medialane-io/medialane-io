@@ -71,7 +71,7 @@ export default function ProfileSettingsPage() {
                   value={form.bio}
                   onChange={(e) => setField("bio", e.target.value)}
                   rows={3}
-                  placeholder={t("Tell the world about yourself and your work…")}
+                  placeholder={t("Tell the world about yourself and what you create…")}
                 />
               </div>
             </SettingsSection>

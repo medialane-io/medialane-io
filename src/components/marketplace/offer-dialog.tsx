@@ -140,7 +140,7 @@ export function OfferDialog({
               badge={is1155 ? (
                 <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-2xs font-semibold px-2.5 py-1 rounded-full border border-brand-purple/40 bg-brand-purple/20 text-brand-purple backdrop-blur-sm">
                   <Layers className="h-3 w-3" />
-                  {t("Multi-edition")}
+                  {t("Limited Edition NFT")}
                 </span>
               ) : undefined}
             />
@@ -156,7 +156,7 @@ export function OfferDialog({
                     form={form}
                     durationOptions={durationOptions}
                     busy={busy}
-                    priceLabel={is1155 ? "Price per edition" : "Offer price"}
+                    priceLabel={is1155 ? "Price per copy" : "Offer price"}
                     quantity={is1155 ? {} : undefined}
                   />
 

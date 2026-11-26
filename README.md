@@ -22,28 +22,32 @@ Creators deserve more than a place to post. They deserve a permanent record that
 
 ## Creator Launchpad
 
-Every way to release your work, in one place.
+**NFTs**
+- **Single NFT:** Create an immutable NFT with licensing for your content.
+- **Limited Edition NFT:** Create an immutable, licensed NFT in multiple copies for your audience to collect and trade.
+- **NFT Remix:** Create a new NFT from an existing one, with its own license and recorded credit to the original.
 
-**Originals**
-- **Single Edition:** publish a photo, video, song or document as a one-of-one.
-- **NFT Collection:** your own collection with its own name, symbol and page.
-- **Collection Drop:** set a price, a supply and a schedule; collectors mint from your drop page.
-- **Remix:** create a licensed derivative. Credit and royalties flow back to the original.
-
-**Limited Editions**
-- Release a work in as many numbered copies as you choose, in a collection you control.
+**Collections**
+- **NFT Collection:** Create an onchain collection you own for a series, project or catalog.
+- **Limited Edition NFT Collection:** Set up your own contract for releasing multiple limited editions as one series.
+- **NFT Drop:** Launch a new collection your audience can get directly from you, for free or at your price.
 
 **Coins**
-- **Creator Coin:** launch your own coin with a public trading pool, and stay in control of its liquidity.
+- **Creator Coin:** Create a coin to build your community, launched with its own liquidity pair.
 
-**Community**
-- **POP:** free, permanent badges your community can claim, one per person and impossible to fake.
-- **IP Tickets:** verifiable tickets with their own supply and validity window.
-- **IP Club:** membership tiers for fans, supporters, press and season passes.
-- **IP Sponsorship:** sponsors bid for a license on your work, and payment settles directly between you.
+**Membership**
+- **POP Protocol:** Issue soulbound certificates as lasting proof of participation and achievement.
+- **IP Tickets:** Create event tickets with verifiable ownership and validity, which holders can resell.
+- **IP Club:** Create memberships that give your community access to the benefits you offer.
+
+**Licensing**
+- **IP Sponsorship:** Create an onchain deal where a sponsor pays an NFT's creator and receives a license.
 
 **Claims**
-- Claim your username for a creator page at your own name, give a collection a clean URL, or bring in a collection or coin you made elsewhere.
+- **Username:** Claim your name and get a public creator page to share.
+- **Existing Collection:** Bring a collection you already own to your profile and manage its page.
+- **Collection Address:** Give your collection a short, memorable link that's easy to share.
+- **Existing Memecoin:** Connect a memecoin you've already launched to your creator profile.
 
 ---
 

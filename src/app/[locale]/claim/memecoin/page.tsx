@@ -6,22 +6,22 @@ import { PageAside } from "@medialane/ui/page-aside";
 import { pageMetadata } from "@/lib/seo";
 import { msg } from "@medialane/ui/i18n";
 
-const title = msg("Claim memecoin");
-const description = msg("Bring a Starknet coin to Medialane.");
+const title = msg("Existing Memecoin");
+const description = msg("Connect a memecoin you've already launched to your creator profile.");
 
 export const generateMetadata = pageMetadata({
   path: "/claim/memecoin",
   title,
   description,
-  imageAlt: msg("Claim a memecoin on Medialane"),
+  imageAlt: msg("Existing Memecoin on Medialane"),
 });
 
 export default function MemecoinClaimPage() {
   return (
     <ClaimRouteShell
       icon={<Coins className="h-4 w-4 text-white" />}
-      title={msg("Claim a memecoin")}
-      subtitle={msg("Add a Starknet coin for trading.")}
+      title={msg("Existing Memecoin")}
+      subtitle={msg("Connect a memecoin you've already launched to your creator profile.")}
       aside={<PageAside kind="claimMemecoin" />}
     >
       <ClaimGate>

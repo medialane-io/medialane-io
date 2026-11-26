@@ -134,7 +134,7 @@ export function ListingDialog({
               badge={is1155 ? (
                 <span className="inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded-full border border-brand-purple/40 bg-brand-purple/15 text-brand-purple">
                   <Layers className="h-3 w-3" />
-                  {t("Multi-edition")}
+                  {t("Limited Edition NFT")}
                 </span>
               ) : undefined}
             />
@@ -147,7 +147,7 @@ export function ListingDialog({
                     form={form}
                     durationOptions={durationOptions}
                     busy={busy}
-                    priceLabel={is1155 ? "Price per edition" : "Price"}
+                    priceLabel={is1155 ? "Price per copy" : "Price"}
                     quantity={is1155 ? { owned: quantityOwned } : undefined}
                   />
 

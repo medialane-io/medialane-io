@@ -1,5 +1,5 @@
 import { navGroups } from "@medialane/ui";
-import { Coins, FolderInput } from "lucide-react";
+import { FolderInput } from "lucide-react";
 import { msg } from "@medialane/ui/i18n";
 
 export const NAV_COMMANDS = navGroups([
@@ -18,13 +18,10 @@ export const NAV_COMMANDS = navGroups([
     ],
   },
   {
-    heading: msg("Create & mint"),
+    heading: msg("Creator Launchpad"),
     items: [
-      "mint-ip-asset", "create-collection", "mint-editions", "create-1155",
-      "pop-create", "pop-browse", "tickets-create", "club-create",
-      "sponsorship-create", "launch-coin",
-      { id: "claim-memecoin", label: msg("Claim a memecoin"), icon: Coins, href: "/claim/memecoin", keywords: ["memecoin", "claim", "coin", "starknet", "unrug", "token"] },
-      "remix",
+      "mint-ip-asset", "mint-editions", "remix", "create-collection", "create-1155", "nft-drop",
+      "launch-coin", "pop-create", "tickets-create", "club-create", "sponsorship-create",
     ],
   },
   {

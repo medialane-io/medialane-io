@@ -28,16 +28,16 @@ const JOURNEYS = [
   },
   {
     icon: Pencil,
-    label: msg("Create a digital asset"),
-    description: msg("Publish music and art with built-in licensing."),
+    label: msg("Create Single NFT"),
+    description: msg("Create an immutable NFT with licensing for your content."),
     href: "/launchpad/single-editions",
     accent: "bg-brand-purple/10 border-brand-purple/20",
     iconColor: "text-brand-purple",
   },
   {
     icon: Package,
-    label: msg("Launch a drop"),
-    description: msg("Deploy a limited-edition NFT collection with custom mint conditions."),
+    label: msg("Launch NFT Drop"),
+    description: msg("Launch a new collection your audience can get directly from you, for free or at your price."),
     href: "/launchpad/drop/create",
     accent: "bg-brand-orange/10 border-brand-orange/20",
     iconColor: "text-brand-orange",
@@ -61,7 +61,7 @@ const HIGHLIGHTS = [
   {
     icon: Shield,
     label: msg("Programmable licensing"),
-    description: msg("Set rights and AI policy for each work."),
+    description: msg("Set rights and AI policy for each NFT."),
   },
   {
     icon: Globe,
