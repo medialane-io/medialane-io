@@ -3,10 +3,15 @@ import { getMedialaneClient } from "@/lib/medialane-client";
 import { toAbsoluteImageUrl } from "@medialane/ui/utils/ipfs";
 import { absoluteUrl } from "@/lib/seo";
 
-const REVALIDATE_SECONDS = 60;
+const DETAIL_REVALIDATE_SECONDS = 300;
+const LIST_REVALIDATE_SECONDS = 60;
 const api = () => getMedialaneClient().api;
 
-function cached<A extends (string | number)[], T>(name: string, read: (...args: A) => Promise<T>) {
+function cached<A extends (string | number)[], T>(
+  name: string,
+  read: (...args: A) => Promise<T>,
+  revalidate = DETAIL_REVALIDATE_SECONDS,
+) {
   return unstable_cache(
     async (...args: A): Promise<T | null> => {
       try {
@@ -16,7 +21,7 @@ function cached<A extends (string | number)[], T>(name: string, read: (...args: 
       }
     },
     [name],
-    { revalidate: REVALIDATE_SECONDS },
+    { revalidate },
   );
 }
 
@@ -37,7 +42,7 @@ export const fetchCollectionBySlug = cached("collection-by-slug", async (slug: s
   await api().collections.findBySlug(slug));
 
 export const fetchFeaturedCollections = cached("featured-collections", async (limit: number) =>
-  (await api().collections.list({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data);
+  (await api().collections.list({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data, LIST_REVALIDATE_SECONDS);
 
 export const fetchDropMeta = cached("drop-meta", (contract: string) => api().drops.find(contract));
 

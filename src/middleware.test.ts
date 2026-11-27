@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { NextRequest } from "next/server";
 import { LOCALES } from "@medialane/ui/i18n";
+import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
+import nextConfig from "../next.config";
 import { handleRequest } from "./middleware";
 
 const PT = LOCALES;
@@ -16,15 +18,11 @@ function request(path: string, headers: Record<string, string> = {}) {
 }
 
 describe("language middleware", () => {
-  test("an unprefixed request with no cookie and no header is rewritten to /en and its URL is unchanged", () => {
+  test("an unprefixed request with no cookie and no header passes through for the English rewrite", () => {
     const response = handleRequest(request("/marketplace?sort=new"), PT);
-    expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost:3000/en/marketplace?sort=new");
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(response.status).toBe(200);
-  });
-
-  test("the home page is rewritten to /en", () => {
-    const response = handleRequest(request("/"), PT);
-    expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost:3000/en");
   });
 
   test("/en/marketplace redirects to /marketplace", () => {
@@ -50,16 +48,50 @@ describe("language middleware", () => {
 
   test("the language cookie wins over the header", () => {
     const response = handleRequest(request("/marketplace", { "accept-language": "pt", cookie: "ml_locale=en" }), PT);
-    expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost:3000/en/marketplace");
+    expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
   test("a language that is not offered is served in English", () => {
     const response = handleRequest(request("/marketplace", { "accept-language": "pt" }), LOCALES.filter((locale) => locale.code === "en"));
-    expect(response.headers.get("x-middleware-rewrite")).toBe("http://localhost:3000/en/marketplace");
+    expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
   test("a double slash after the language cannot redirect off the site", () => {
     const response = handleRequest(request("/en//evil.com"), PT);
     expect(response.headers.get("location")).toBe("http://localhost:3000/evil.com");
+  });
+});
+
+async function rewritten(path: string) {
+  const rewrites = await nextConfig.rewrites!();
+  if (Array.isArray(rewrites)) throw new Error("expected rewrite phases");
+  for (const { source, destination } of rewrites.afterFiles ?? []) {
+    const params = getPathMatch(source, { strict: true })(path);
+    if (!params) continue;
+    const rest = Array.isArray(params.rest) ? params.rest.join("/") : params.rest;
+    return destination.replace(":first", String(params.first)).replace("/:rest*", rest ? `/${rest}` : "");
+  }
+  return null;
+}
+
+describe("English routing", () => {
+  test("unprefixed pages are served from /en", async () => {
+    expect(await rewritten("/")).toBe("/en");
+    expect(await rewritten("/marketplace")).toBe("/en/marketplace");
+    expect(await rewritten("/asset/starknet/0x1/2")).toBe("/en/asset/starknet/0x1/2");
+    expect(await rewritten("/apiary")).toBe("/en/apiary");
+  });
+
+  test("API routes, build files and public files are left alone", async () => {
+    for (const path of ["/api/proxy/v1/tokens", "/api/session", "/_next/static/chunks/a.js", "/favicon.ico", "/.well-known/webauthn"]) {
+      expect(await rewritten(path)).toBeNull();
+    }
+  });
+
+  test("every offered language is left alone", async () => {
+    for (const { code } of LOCALES) {
+      expect(await rewritten(`/${code}`)).toBeNull();
+      expect(await rewritten(`/${code}/marketplace`)).toBeNull();
+    }
   });
 });

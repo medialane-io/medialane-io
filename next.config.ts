@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
+import { DEFAULT_LOCALE, LOCALES } from "@medialane/ui/i18n";
 
 const BACKEND_ORIGIN =
   process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "https://api.medialane.io";
+
+const UNLOCALIZED_SEGMENTS = ["api", "_next", ...LOCALES.map(({ code }) => code)].join("|");
 
 const enforcedCsp = [
   "base-uri 'self'",
@@ -42,6 +45,19 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@medialane/ui"],
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [
+        { source: "/", destination: `/${DEFAULT_LOCALE}` },
+        {
+          source: `/:first((?!(?:${UNLOCALIZED_SEGMENTS})(?:/|$))[^/.]+)/:rest*`,
+          destination: `/${DEFAULT_LOCALE}/:first/:rest*`,
+        },
+      ],
+      fallback: [],
+    };
   },
   async redirects() {
     return [

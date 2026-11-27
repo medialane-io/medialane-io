@@ -4,7 +4,11 @@ import { alternates, buildBreadcrumbJsonLd, buildProductJsonLd, buildSocialMetad
 import { DropDetailPage } from "@medialane/ui";
 import { JsonLd } from "@medialane/ui/json-ld";
 
-export const revalidate = 60;
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ contract: string; locale: string }>;
