@@ -1,51 +1,21 @@
 import { unstable_cache } from "next/cache";
+import { createServerReads } from "@medialane/ui/utils/server-reads";
 import { getMedialaneClient } from "@/lib/medialane-client";
-import { toAbsoluteImageUrl } from "@medialane/ui/utils/ipfs";
+import { MEDIALANE_BACKEND_URL } from "@/lib/constants";
 import { absoluteUrl } from "@/lib/seo";
 
-const DETAIL_REVALIDATE_SECONDS = 300;
-const LIST_REVALIDATE_SECONDS = 60;
-const api = () => getMedialaneClient().api;
-
-function cached<A extends (string | number)[], T>(
-  name: string,
-  read: (...args: A) => Promise<T>,
-  revalidate = DETAIL_REVALIDATE_SECONDS,
-) {
-  return unstable_cache(
-    async (...args: A): Promise<T | null> => {
-      try {
-        return await read(...args);
-      } catch {
-        return null;
-      }
-    },
-    [name],
-    { revalidate },
-  );
-}
-
-const BACKEND_ORIGIN = new URL(process.env.NEXT_PUBLIC_MEDIALANE_BACKEND_URL ?? "http://localhost:3001").origin;
-
-export function ipfsToHttpServer(uri: string | null | undefined): string {
-  const url = toAbsoluteImageUrl(uri);
-  return url.startsWith(`${BACKEND_ORIGIN}/`) ? absoluteUrl(`/api/img?url=${encodeURIComponent(url)}`) : url;
-}
-
-export const fetchTokenMeta = cached("token-meta", async (contract: string, tokenId: string) =>
-  await api().tokens.get(contract, tokenId));
-
-export const fetchCollectionMeta = cached("collection-meta", async (contract: string) =>
-  await api().collections.get(contract));
-
-export const fetchCollectionBySlug = cached("collection-by-slug", async (slug: string) =>
-  await api().collections.findBySlug(slug));
-
-export const fetchFeaturedCollections = cached("featured-collections", async (limit: number) =>
-  (await api().collections.list({ page: 1, limit, sort: "recent", isFeatured: true, hideEmpty: true })).data, LIST_REVALIDATE_SECONDS);
-
-export const fetchDropMeta = cached("drop-meta", (contract: string) => api().drops.find(contract));
-
-export const fetchCoinMeta = cached("coin-meta", async (contract: string) => await api().coins.get(contract));
-
-export const fetchCreatorProfile = cached("creator-profile", (username: string) => api().creators.findByUsername(username));
+export const {
+  ipfsToHttpServer,
+  fetchTokenMeta,
+  fetchCollectionMeta,
+  fetchCollectionBySlug,
+  fetchFeaturedCollections,
+  fetchDropMeta,
+  fetchCoinMeta,
+  fetchCreatorProfile,
+} = createServerReads({
+  api: () => getMedialaneClient().api,
+  cache: unstable_cache,
+  backendUrl: MEDIALANE_BACKEND_URL,
+  absoluteUrl,
+});
