@@ -3,7 +3,11 @@ import { alternates, buildSocialMetadata, buildBreadcrumbJsonLd } from "@/lib/se
 import { JsonLd } from "@medialane/ui/json-ld";
 import AccountPageClient from "./account-page-client";
 
-export const revalidate = 60;
+export const revalidate = false;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ address: string; locale: string }>;

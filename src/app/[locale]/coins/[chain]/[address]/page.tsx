@@ -6,7 +6,11 @@ import { alternates, buildSocialMetadata, buildBreadcrumbJsonLd, buildProductJso
 import { JsonLd } from "@medialane/ui/json-ld";
 import { CoinExploreClient } from "./coin-explore-client";
 
-export const revalidate = 60;
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ chain: string; address: string; locale: string }>;

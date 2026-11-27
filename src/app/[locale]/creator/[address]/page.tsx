@@ -7,7 +7,11 @@ import { absoluteUrl, alternates, truncateDescription, buildSocialMetadata, buil
 import CreatorUsernamePageClient from "./creator-username-client";
 import { profileIdentity } from "@medialane/ui";
 
-export const revalidate = 60;
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ address: string; locale: string }>;

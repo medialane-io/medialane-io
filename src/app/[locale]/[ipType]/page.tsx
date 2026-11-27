@@ -1,11 +1,17 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { IP_TYPE_DATA_MAP } from "@medialane/ui";
+import { IP_TYPE_DATA, IP_TYPE_DATA_MAP } from "@medialane/ui";
 import { IpTypePageClient } from "./ip-type-page-client";
 import { alternates } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ ipType: string; locale: string }>;
+}
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return IP_TYPE_DATA.map(({ slug }) => ({ ipType: slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

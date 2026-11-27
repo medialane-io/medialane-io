@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE, resolveLocale, type LocaleInfo } from "@medialane/ui/i18n";
+import { LOCALES, LOCALE_COOKIE, resolveLocale, type LocaleInfo } from "@medialane/ui/i18n";
 
 export function handleRequest(request: NextRequest, locales: readonly LocaleInfo[] = LOCALES) {
   const { pathname, search } = request.nextUrl;
@@ -19,9 +19,7 @@ export function handleRequest(request: NextRequest, locales: readonly LocaleInfo
   }
   if (prefixed) return NextResponse.next();
 
-  const url = request.nextUrl.clone();
-  url.pathname = pathname === "/" ? `/${DEFAULT_LOCALE}` : `/${DEFAULT_LOCALE}${pathname}`;
-  return vary(NextResponse.rewrite(url), true);
+  return vary(NextResponse.next(), true);
 }
 
 function vary(response: NextResponse, depends: boolean) {

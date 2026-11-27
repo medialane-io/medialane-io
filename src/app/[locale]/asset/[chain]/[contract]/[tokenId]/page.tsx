@@ -6,7 +6,11 @@ import { absoluteUrl, alternates, truncateDescription, buildSocialMetadata, buil
 import { chainFromSlug } from "@/lib/routes";
 import AssetPageClient from "./asset-page-client";
 
-export const revalidate = 60;
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 interface Props {
   params: Promise<{ chain: string; contract: string; tokenId: string; locale: string }>;
